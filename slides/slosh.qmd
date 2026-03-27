@@ -1,0 +1,83 @@
+---
+title: CSC 453
+subtitle: Spring 2026 SLOsh
+format: 
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15 
+    # height: 700   # Optional: Normal height (defaults to 700)
+    # width: 1000   # Optional: Normal width (defaults to 900)
+---
+
+
+## SLOsh
+
+- This assignment should be a refresher of 357 topics
+- skeleton code on Canvas
+- Your minimal shell will support: 
+  - basic command execution
+  - built-in commands
+  - signal handling
+  - I/O redirection
+  - piping
+
+## Requirements
+
+::: {.nonincremental}
+- C99 POSIX
+- Must compile / run on the unix* servers
+- You must create a functional Makefile
+- Submit a tar (.tgz) file in Canvas
+:::
+
+## Command execution
+
+- Execute external commands 
+  - Use `fork()`, `exec()`, and `waitpid()` to manage process execution
+- Support command-line arguments
+- Handle both relative and absolute paths to executables
+- Report command execution errors appropriately
+
+## Redirection / piping
+
+- Use `open()`, `dup2()`, and `close()` for file redirection
+- Use `pipe()` for creating pipes between processes
+
+## Signal handling
+
+- Signals are async. They can happen at any time
+- Certain functions are async-safe, others are not
+  - `printf()` contains internal buffers and state; an interruption can lead to corrupted buffers 
+
+## Handling SIGINT
+
+- `write()` a newline or whatever to signify the signal was caught.
+- If there is not a child running, `write()` a new prompt
+
+## Parent vs child
+
+- The child should immediately reset signal handling to the default
+- Look up `signal()`'s man
+  ```{.bash code-line-numbers=false}
+  man 2 signal
+  ``` 
+
+## Sigaction
+
+- `sigaction()` is newer than `signal()`
+- Offers more control and is more consistent across systems
+- Allows specifying flags
+  - SA_RESTART (`man 7 signal`)
+    - Without it, syscalls return with EINTR error if they are interrupted by a signal
+    - With it, most syscalls automatically restart
+- Is the POSIX-compliant approach
+- EINTR can still happen, it's wise to check for it and handle it
+  - When reading input from user
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
