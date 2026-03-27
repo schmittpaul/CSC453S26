@@ -1,5 +1,68 @@
 [
   {
+    "objectID": "slosh.html#slosh",
+    "href": "slosh.html#slosh",
+    "title": "CSC 453",
+    "section": "SLOsh",
+    "text": "SLOsh\n\nThis assignment should be a refresher of 357 topics\nskeleton code on Canvas\nYour minimal shell will support:\n\nbasic command execution\nbuilt-in commands\nsignal handling\nI/O redirection\npiping"
+  },
+  {
+    "objectID": "slosh.html#requirements",
+    "href": "slosh.html#requirements",
+    "title": "CSC 453",
+    "section": "Requirements",
+    "text": "Requirements\n\nC99 POSIX\nMust compile / run on the unix* servers\nYou must create a functional Makefile\nSubmit a tar (.tgz) file in Canvas"
+  },
+  {
+    "objectID": "slosh.html#command-execution",
+    "href": "slosh.html#command-execution",
+    "title": "CSC 453",
+    "section": "Command execution",
+    "text": "Command execution\n\nExecute external commands\n\nUse fork(), exec(), and waitpid() to manage process execution\n\nSupport command-line arguments\nHandle both relative and absolute paths to executables\nReport command execution errors appropriately"
+  },
+  {
+    "objectID": "slosh.html#redirection-piping",
+    "href": "slosh.html#redirection-piping",
+    "title": "CSC 453",
+    "section": "Redirection / piping",
+    "text": "Redirection / piping\n\nUse open(), dup2(), and close() for file redirection\nUse pipe() for creating pipes between processes"
+  },
+  {
+    "objectID": "slosh.html#signal-handling",
+    "href": "slosh.html#signal-handling",
+    "title": "CSC 453",
+    "section": "Signal handling",
+    "text": "Signal handling\n\nSignals are async. They can happen at any time\nCertain functions are async-safe, others are not\n\nprintf() contains internal buffers and state; an interruption can lead to corrupted buffers"
+  },
+  {
+    "objectID": "slosh.html#handling-sigint",
+    "href": "slosh.html#handling-sigint",
+    "title": "CSC 453",
+    "section": "Handling SIGINT",
+    "text": "Handling SIGINT\n\nwrite() a newline or whatever to signify the signal was caught.\nIf there is not a child running, write() a new prompt"
+  },
+  {
+    "objectID": "slosh.html#parent-vs-child",
+    "href": "slosh.html#parent-vs-child",
+    "title": "CSC 453",
+    "section": "Parent vs child",
+    "text": "Parent vs child\n\nThe child should immediately reset signal handling to the default\nLook up signal()’s man\nman 2 signal"
+  },
+  {
+    "objectID": "slosh.html#sigaction",
+    "href": "slosh.html#sigaction",
+    "title": "CSC 453",
+    "section": "Sigaction",
+    "text": "Sigaction\n\nsigaction() is newer than signal()\nOffers more control and is more consistent across systems\nAllows specifying flags\n\nSA_RESTART (man 7 signal)\n\nWithout it, syscalls return with EINTR error if they are interrupted by a signal\nWith it, most syscalls automatically restart\n\n\nIs the POSIX-compliant approach\nEINTR can still happen, it’s wise to check for it and handle it\n\nWhen reading input from user"
+  },
+  {
+    "objectID": "slosh.html#section",
+    "href": "slosh.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day1.html#who-am-i",
     "href": "day1.html#who-am-i",
     "title": "CSC 453",
