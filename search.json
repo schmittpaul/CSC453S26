@@ -88,7 +88,7 @@
     "href": "day1.html#how-to-succeed-in-this-class",
     "title": "CSC 453",
     "section": "How to succeed in this class",
-    "text": "How to succeed in this class\n\nTurn things in on time\nAttend class\n\n… on time. Lectures will start at 10 after the hour\n\n\nAsk questions\n\nI’m very flexible about how much we cover this semester\nI would rather teach less and have everyone understand it\nOur back-and-forth during class is the one of the few indicators I have of how much you are absorbing\n\nTalk to me if you are struggling"
+    "text": "How to succeed in this class\n\nTurn things in on time\nAttend class\n\n… on time. Lectures will start at 10 after the hour\n\nAsk questions\n\nI’m very flexible about how much we cover this term\nI would rather teach less and have everyone understand it\nOur back-and-forth during class is the one of the few indicators I have of how much you are absorbing\n\nTalk to me if you are struggling"
   },
   {
     "objectID": "day1.html#what-are-we-doing-here",
@@ -147,8 +147,8 @@
     "text": "Tl;dr\nOSes continue to evolve as environments (i.e., constraints) change"
   },
   {
-    "objectID": "day1.html#section-1",
-    "href": "day1.html#section-1",
+    "objectID": "day1.html#section",
+    "href": "day1.html#section",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
@@ -203,8 +203,197 @@
     "text": "OS design requirements - what do we need?\n\nConvenience, abstraction of hardware resources for user programs\nEfficiency of usage of CPU, memory, etc.\nIsolation between multiple processes\nReliability, the OS must not fail\nOther:\n\nSecurity\nMobility"
   },
   {
+    "objectID": "day1.html#section-1",
+    "href": "day1.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day1.html#questions-to-consider-2",
+    "href": "day1.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does the OS manage access to resources?"
+  },
+  {
+    "objectID": "day1.html#os-as-a-resource-manager",
+    "href": "day1.html#os-as-a-resource-manager",
+    "title": "CSC 453",
+    "section": "OS as a resource manager",
+    "text": "OS as a resource manager\n\nAnother view: resource manager - shares resources “well”\nAdvantages of the OS managing resources?\n\nProtect applications from one another\nProvide efficient access to resources (cost, time, energy)\nProvide fair access to resources\n\nChallenges?\n\nWhat are the correct mechanisms?\nWhat are the correct policies?"
+  },
+  {
+    "objectID": "day1.html#resources-are-managed-via-services",
+    "href": "day1.html#resources-are-managed-via-services",
+    "title": "CSC 453",
+    "section": "Resources are managed via services",
+    "text": "Resources are managed via services\n\nProgram Execution (loading, running, monitoring, terminating)\nPerformance (optimizing resources under constraints)\nCorrectness (overseeing critical operations, preventing interference)\nFairness (access to and allocation of resources)\nError detection & recovery (network partition & media failure)"
+  },
+  {
+    "objectID": "day1.html#services-contd",
+    "href": "day1.html#services-contd",
+    "title": "CSC 453",
+    "section": "Services (cont’d)",
+    "text": "Services (cont’d)\n\nCommunication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)\nI/O: reading & writing, support for various mediums, devices, performance, and protections\nData Organization (naming), Services (search) & Protection (access control)\nSecurity (isolation, enforcement, services, authentication, accounting and logging, trust)\nUser interfaces (command-line, GUIs, multiple users)"
+  },
+  {
+    "objectID": "day1.html#each-service-has-challenges-and-tensions",
+    "href": "day1.html#each-service-has-challenges-and-tensions",
+    "title": "CSC 453",
+    "section": "Each service has challenges and tensions",
+    "text": "Each service has challenges and tensions\nExample 1: We have limited RAM, and we want to run more programs that can be stored.\n\nHow do we allocate space?\nWho stays?\nWho goes?\nWhat if we’re wrong?\nWhat if the system is under extremely heavy load?\nIs there a way to predict the future?"
+  },
+  {
+    "objectID": "day1.html#each-service-has-challenges-and-tensions-1",
+    "href": "day1.html#each-service-has-challenges-and-tensions-1",
+    "title": "CSC 453",
+    "section": "Each service has challenges and tensions",
+    "text": "Each service has challenges and tensions\nExample 2: We have two process (producer / consumer); how do they communicate?\n\nMessage passing? Shared memory?\nHow do they synchronize?\n\nHow to we prevent over-production? Over-consumption?\nContext-switching?"
+  },
+  {
     "objectID": "day1.html#section-2",
     "href": "day1.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day1.html#questions-to-consider-3",
+    "href": "day1.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat is the chain of events that takes place before you are able to run a process?\nWhere do the different parts of the chain reside? How are they called?"
+  },
+  {
+    "objectID": "day1.html#boot-is-like-a-relay-race",
+    "href": "day1.html#boot-is-like-a-relay-race",
+    "title": "CSC 453",
+    "section": "Boot is like a relay race",
+    "text": "Boot is like a relay race\n\nA sequence of programs\nEach stage:\n\nHas slightly more power\nLoads the next stage\nJumps to it"
+  },
+  {
+    "objectID": "day1.html#power-on",
+    "href": "day1.html#power-on",
+    "title": "CSC 453",
+    "section": "Power-On",
+    "text": "Power-On\n\nCPU resets\nInstruction pointer set to a fixed address\nExecution begins in firmware (ROM)\nThe CPU does not know what an OS is"
+  },
+  {
+    "objectID": "day1.html#firmware-bios-uefi",
+    "href": "day1.html#firmware-bios-uefi",
+    "title": "CSC 453",
+    "section": "Firmware (BIOS / UEFI)",
+    "text": "Firmware (BIOS / UEFI)\n\nInitializes RAM\nInitializes minimal hardware\nFinds one program to run (bootloader)\nLoads it into memory\nJumps to it"
+  },
+  {
+    "objectID": "day1.html#bootloaders-job-grub-example",
+    "href": "day1.html#bootloaders-job-grub-example",
+    "title": "CSC 453",
+    "section": "Bootloader’s job (GRUB Example)",
+    "text": "Bootloader’s job (GRUB Example)\n\nUnderstand filesystems\nLoad the kernel image\nLoad the initramfs\nPass arguments to the kernel\nJump to the kernel entry point\nProvides kernel command line args\nroot=/dev/sda1\ninit=/sbin/init\nconsole=ttyS0"
+  },
+  {
+    "objectID": "day1.html#what-the-bootloader-does-not-do",
+    "href": "day1.html#what-the-bootloader-does-not-do",
+    "title": "CSC 453",
+    "section": "What the bootloader does not do",
+    "text": "What the bootloader does not do\n\nDoes not schedule processes\nDoes not manage memory long-term\nDoes not run the OS"
+  },
+  {
+    "objectID": "day1.html#kernel",
+    "href": "day1.html#kernel",
+    "title": "CSC 453",
+    "section": "Kernel",
+    "text": "Kernel\nThink of the kernel in phases\n\nSelf-setup\nHardware abstraction\nUserspace handoff"
+  },
+  {
+    "objectID": "day1.html#kernel-self-setup",
+    "href": "day1.html#kernel-self-setup",
+    "title": "CSC 453",
+    "section": "Kernel self-setup",
+    "text": "Kernel self-setup\n\nSets up page tables\nEnables virtual memory\nInitializes scheduler\nSets up interrupts\n\n\nThe kernel cannot rely on anything yet: it is building the world."
+  },
+  {
+    "objectID": "day1.html#kernel-hardware-abstractions",
+    "href": "day1.html#kernel-hardware-abstractions",
+    "title": "CSC 453",
+    "section": "Kernel hardware abstractions",
+    "text": "Kernel hardware abstractions\nThis is where hardware becomes an abstraction.\n\nDetects hardware\nLoads drivers\nTurns devices into files:\n\n/dev/sda\n/dev/tty\n\nCreates kernel threads"
+  },
+  {
+    "objectID": "day1.html#userspace-handoff",
+    "href": "day1.html#userspace-handoff",
+    "title": "CSC 453",
+    "section": "Userspace handoff",
+    "text": "Userspace handoff\n\nMounts the root filesystem\nChooses one program to run\nExecutes it with execve()\nexecve(\"/sbin/init\", ...);"
+  },
+  {
+    "objectID": "day1.html#init-pid-1",
+    "href": "day1.html#init-pid-1",
+    "title": "CSC 453",
+    "section": "Init (PID 1)",
+    "text": "Init (PID 1)\n\nFirst userspace process\nAlways PID 1\nParent of all other processes\n\n\nIf PID 1 exits?\n\nThe kernel panics or shuts down"
+  },
+  {
+    "objectID": "day1.html#section-3",
+    "href": "day1.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day1.html#questions-to-consider-4",
+    "href": "day1.html#questions-to-consider-4",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the different kernel paradigms?\nWhy would you choose one over the other?"
+  },
+  {
+    "objectID": "day1.html#paradigms",
+    "href": "day1.html#paradigms",
+    "title": "CSC 453",
+    "section": "Paradigms",
+    "text": "Paradigms\n\nThe OS offers a number of services. What should go in the kernel?\n\nIPC\nVFS\nFile system\nScheduler\nVirtual Memory\nDevice drivers"
+  },
+  {
+    "objectID": "day1.html#monolithic-kernels",
+    "href": "day1.html#monolithic-kernels",
+    "title": "CSC 453",
+    "section": "Monolithic kernels",
+    "text": "Monolithic kernels\n\nOldest, very common design (Linux, Windows 9x, BSDs)\nSingle piece of code in memory\nLimited information hiding\n\nOne part of the kernel can directly access data and functions of other parts"
+  },
+  {
+    "objectID": "day1.html#monolithic-kernels-contd",
+    "href": "day1.html#monolithic-kernels-contd",
+    "title": "CSC 453",
+    "section": "Monolithic kernels (cont’d)",
+    "text": "Monolithic kernels (cont’d)\n\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
+  },
+  {
+    "objectID": "day1.html#layered-kernels",
+    "href": "day1.html#layered-kernels",
+    "title": "CSC 453",
+    "section": "Layered kernels",
+    "text": "Layered kernels\n\nDijkstra created the THE OS in the 60s, introducing the concept Each inner layer is more privileged; required a trap to move down layers\nHardware-enforcement possible\nIntel announced in May 2024 that the new architectures will only have rings 0 and 3"
+  },
+  {
+    "objectID": "day1.html#microkernels",
+    "href": "day1.html#microkernels",
+    "title": "CSC 453",
+    "section": "Microkernels",
+    "text": "Microkernels\n\n\n\nPopular research area long ago, didn’t win (although people remain interested in the principles)\nAll non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management\nA collection of OS services running in user space\nDownsides?\n\nHeavy communication costs through message passing (marshaled through the kernel)"
+  },
+  {
+    "objectID": "day1.html#monolithic-vs-microkernel",
+    "href": "day1.html#monolithic-vs-microkernel",
+    "title": "CSC 453",
+    "section": "Monolithic vs Microkernel",
+    "text": "Monolithic vs Microkernel"
+  },
+  {
+    "objectID": "day1.html#section-4",
+    "href": "day1.html#section-4",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
