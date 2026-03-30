@@ -1,13 +1,11 @@
 ---
 title: CSC 453
 subtitle: Operating Systems
-format: 
+format:
   clean-revealjs:
     self-contained: true
     incremental: true
-    margin: 0.15 
-    # height: 700   # Optional: Normal height (defaults to 700)
-    # width: 1000   # Optional: Normal width (defaults to 900)
+    margin: 0.15
 ---
 # This class {background-color="#40666e"}
 
@@ -24,8 +22,6 @@ format:
   - Integrating privacy and security into systems that we all use
   - ML for network management
   - Connectivity / privacy in challenging environments
-
-## {background-color="black" background-image="images/zaatari.png" background-size="cover"}
 
 ## This class
 
@@ -46,9 +42,9 @@ format:
 
 - Turn things in [on time]{.alert}
 - Attend class
-  - … on time. Lectures will start at 10 after the hour  
+  - … on time. Lectures will start at 10 after the hour
 - Ask questions
-  - I'm very flexible about how much we cover this semester
+  - I'm very flexible about how much we cover this term
   - I would rather teach less and have everyone understand it
   - Our back-and-forth during class is the one of the few indicators I have of how much you are absorbing
 - Talk to me if you are struggling
@@ -174,9 +170,9 @@ OSes continue to evolve as environments (i.e., constraints) change
 ## {background-color="#6E404F"}
 
 ::: {.r-fit-text}
-What isn't clear? 
+What isn't clear?
 
-Comments? Thoughts? 
+Comments? Thoughts?
 :::
 
 
@@ -270,8 +266,253 @@ Memory Address Space
 ## {background-color="#6E404F"}
 
 ::: {.r-fit-text}
-What isn't clear? 
+What isn't clear?
 
-Comments? Thoughts? 
+Comments? Thoughts?
 :::
 
+
+# Resource management {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How does the OS manage access to resources?
+:::
+
+## OS as a resource manager
+
+
+- Another view: [resource manager]{.alert} - shares resources "well"
+- [Advantages]{.alert} of the OS managing resources?
+  - Protect applications from one another
+  - Provide efficient access to resources (cost, time, energy)
+  - Provide fair access to resources
+- [Challenges]{.alert}?
+  - What are the correct mechanisms?
+  - What are the correct policies?
+
+## Resources are managed via [services]{.alert}
+
+- Program Execution (loading, running, monitoring, terminating)
+- Performance (optimizing resources under constraints)
+- Correctness (overseeing critical operations, preventing interference)
+- Fairness (access to and allocation of resources)
+- Error detection & recovery (network partition & media failure)
+
+## Services (cont'd)
+
+- Communication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)
+- I/O: reading & writing, support for various mediums, devices, performance, and protections
+- Data Organization (naming), Services (search) & Protection (access control)
+- Security (isolation, enforcement, services, authentication, accounting and logging, trust)
+- User interfaces (command-line, GUIs, multiple users)
+
+## Each service has [challenges]{.alert} and [tensions]{.alert}
+
+Example 1: We have limited RAM, and we want to run more programs that can be stored.
+
+- How do we allocate space?
+- Who stays?
+- Who goes?
+- What if we're wrong?
+- What if the system is under extremely heavy load?
+- Is there a way to predict the future?
+
+## Each service has [challenges]{.alert} and [tensions]{.alert}
+
+Example 2: We have two process (producer / consumer); how do they communicate?
+
+- Message passing? Shared memory?
+- How do they synchronize?
+  - How to we prevent over-production? Over-consumption?
+  - Context-switching?
+
+## {background-color="#6E404F"}
+
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Boot chain {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What is the chain of events that takes place before you are able to run a process?
+- Where do the different parts of the chain reside? How are they called?
+:::
+
+## Boot is like a relay race
+
+- A sequence of programs
+- Each stage:
+  - Has slightly more power
+  - Loads the next stage
+  - Jumps to it
+
+## Power-On
+
+- CPU resets
+- Instruction pointer set to a fixed address
+- Execution begins in firmware (ROM)
+- [The CPU does not know what an OS is]{.alert}
+
+## Firmware (BIOS / UEFI)
+
+- Initializes RAM
+- Initializes minimal hardware
+- Finds one program to run (bootloader)
+- Loads it into memory
+- Jumps to it
+
+## Bootloader's job (GRUB Example)
+
+- Understand filesystems
+- Load the kernel image
+- Load the initramfs
+- Pass arguments to the kernel
+- Jump to the kernel entry point
+- Provides kernel command line args
+  ```{.code}
+  root=/dev/sda1
+  init=/sbin/init
+  console=ttyS0
+  ```
+
+## What the bootloader does [not]{.alert} do
+
+- Does not schedule processes
+- Does not manage memory long-term
+- Does not run the OS
+
+## Kernel
+
+Think of the kernel in phases
+
+1. Self-setup
+2. Hardware abstraction
+3. Userspace handoff
+
+## Kernel self-setup
+-	Sets up page tables
+- Enables virtual memory
+- Initializes scheduler
+- Sets up interrupts
+
+:::{.fragment}
+The kernel cannot rely on [anything]{.alert} yet: it is building the world.
+:::
+
+## Kernel hardware abstractions
+### This is where hardware becomes an abstraction.
+- Detects hardware
+- Loads drivers
+- Turns devices into files:
+  - `/dev/sda`
+  - `/dev/tty`
+- Creates kernel threads
+
+## Userspace handoff
+- Mounts the root filesystem
+- Chooses one program to run
+- Executes it with `execve()`
+  ```{.c}
+  execve("/sbin/init", ...);
+  ```
+
+## Init (PID 1)
+- First userspace process
+- Always PID 1
+- Parent of all other processes
+
+:::{.fragment}
+If PID 1 exits?
+
+- The kernel panics or shuts down
+:::
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Kernel basics {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the different kernel paradigms?
+- Why would you choose one over the other?
+:::
+
+## Paradigms
+
+- The OS offers a number of services. What should go in the kernel?
+  - IPC
+  - VFS
+  - File system
+  - Scheduler
+  - Virtual Memory
+  - Device drivers
+
+## Monolithic kernels
+
+- Oldest, very common design (Linux, Windows 9x, BSDs)
+- Single piece of code in memory
+- Limited [information hiding]{.alert}
+  - One part of the kernel can directly access data and functions of other parts
+
+## Monolithic kernels (cont'd)
+
+- Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)?
+- [Modules]{.alert} (loadable kernel modules - LKMs) allow for flexibility, customization, support
+  - Pros?
+    - Memory savings
+    - Flexibility
+    - Minimal downtime
+  - Cons?
+    - (minor) fragmentation: the base kernel can be loaded contiguously in memory
+    - Security ([https://github.com/m0nad/Diamorphine](https://github.com/m0nad/Diamorphine) **DO NOT USE THIS, IT'S SIMPLY TO SHOW YOU**)
+
+## Layered kernels
+
+- Dijkstra created the THE OS in the 60s, introducing the concept
+Each inner layer is more privileged; required a trap to move down layers
+- Hardware-enforcement possible
+- Intel [announced](https://www.intel.com/content/www/us/en/developer/articles/technical/envisioning-future-simplified-architecture.html) in May 2024 that the new architectures will only have rings 0 and 3
+
+## Microkernels
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+- Popular research area long ago, didn't win (although people remain interested in the principles)
+- All non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management
+- A collection of OS services running in user space
+- Downsides?
+  - Heavy communication costs through message passing (marshaled through the kernel)
+
+:::
+
+::: {.column width="5%"}
+:::
+
+::: {.column width="40%"}
+![](images/microkernel.png){.fragment}
+:::
+
+::::
+
+## Monolithic vs Microkernel
+![](images/mono_vs_micro.png)
+
+## {background-color="#6E404F"}
+
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
