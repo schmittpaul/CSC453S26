@@ -4,13 +4,13 @@ subtitle: Operating Systems
 format:
   clean-revealjs:
     self-contained: true
-    incremental: true
+    incremental: false
     margin: 0.15
 ---
 # This class {background-color="#40666e"}
 
 ## Who am I?
-
+:::{.incremental}
 - [https://pschmitt.net](https://pschmitt.net)
 - Academics
   - PhD at UCSB
@@ -22,14 +22,18 @@ format:
   - Integrating privacy and security into systems that we all use
   - ML for network management
   - Connectivity / privacy in challenging environments
+:::
 
 ## This class
 
 - Too much to cover in one term: survey of important topics
-- Course Canvas: [https://canvas.calpoly.edu/courses/168889](https://canvas.calpoly.edu/courses/168889)
-- Syllabus: [https://schmittpaul.github.io/CSC453W26/syllabus.pdf](https://schmittpaul.github.io/CSC453W26/syllabus.pdf)
+- Course Canvas: [https://canvas.calpoly.edu/courses/178871](https://canvas.calpoly.edu/courses/178871)
+- Syllabus: [https://schmittpaul.github.io/CSC453S26/syllabus.pdf](https://schmittpaul.github.io/CSC453S26/syllabus.pdf)
+
+:::{.incremental}
 - Waitlists...
 - What OSes do you all run?
+:::
 
 ## Who are you?
 
@@ -39,7 +43,7 @@ format:
 :::
 
 ## How to succeed in this class
-
+:::{.incremental}
 - Turn things in [on time]{.alert}
 - Attend class
   - … on time. Lectures will start at 10 after the hour
@@ -48,13 +52,13 @@ format:
   - I would rather teach less and have everyone understand it
   - Our back-and-forth during class is the one of the few indicators I have of how much you are absorbing
 - Talk to me if you are struggling
+:::
 
 ## What are we doing here?
 
 :::: {.columns}
 
-::: {.column width="50%"}
-
+::: {.column width="50%" .incremental}
 - How many of you have participated in OS development?
 - How many of you regularly program in languages that use operating system abstractions directly?
 - And C is a decreasingly popular language!
@@ -79,14 +83,14 @@ format:
 - [Beauty]{.alert}: operating systems are examples of mature solutions to difficult design and engineering problems. Studying them will improve your ability to design and implement abstractions
 
 ## Course progression
-
+:::{.incremental}
 - Introduction to operating system abstractions and structures
 - Abstracting and multiplexing:
   - [CPU]{.alert}: interrupts, context, threads, processes, processor scheduling, thread synchronization, deadlocks
   - [Memory]{.alert}: memory layout, address translation, paging and segmentation, address spaces, translation caching, page fault handling, page eviction, swapping
   - [File systems and storage]{.alert}: disk scheduling, on-disk layout, files, buffer cache, crash and recovery
   - [Security]{.alert} (time permitting)
-
+:::
 
 # Background {background-color="#40666e"}
 
@@ -102,7 +106,7 @@ format:
 
 :::: {.columns}
 
-::: {.column width="70%"}
+::: {.column width="70%" .incremental}
 
 - Operating System:
   - A [computer program]{.alert} that
@@ -128,7 +132,7 @@ format:
 
 :::: {.columns}
 
-::: {.column width="55%"}
+::: {.column width="55%" .incremental}
 
 - Started out as [libraries]{.alert} to provide common functionality across programs
   - See any issues with this approach?
@@ -136,7 +140,6 @@ format:
   - What's the difference?
 - Evolved from running a single program to [multiple processes concurrently]{.alert}
   - New issues to solve?
-
 :::
 
 ::: {.column width="5%"}
@@ -185,24 +188,26 @@ Comments? Thoughts?
 :::
 
 ## Abstractions
-
+:::{.incremental}
 - Abstractions _simplify application design_ by:
   - hiding undesirable properties,
   - adding new capabilities, and
   - organizing information
 - Abstractions provide an [interface]{.alert} to application programmers that separates [policy]{.alert}—what the interface commits to accomplishing—from [mechanism]{.alert}—how the interface is implemented.
+:::
 
 ## What are the abstractions?
-
+:::{.incremental}
 - CPUs
   - Processes, threads
 - Memory
   - Address space
 - Disk
   - Files
+:::
 
 ## Example OS abstraction: file systems
-
+:::{.incremental}
 - What [undesirable properties]{.alert} do file systems hide?
   - Disks are slow!
   - Chunks of storage are actually distributed all over the disk
@@ -213,6 +218,7 @@ Comments? Thoughts?
 - What [information]{.alert} do files help organize?
   - Ownership and permissions
   - Access time, modification time, type, etc.
+:::
 
 ## Abstraction tradeoffs - discussion
 
@@ -244,7 +250,7 @@ Memory Address Space
 :::
 
 ## Abstraction pros / cons
-
+:::{.incremental}
 - [Advantages]{.alert} of OS providing abstractions?
   - Allow applications to reuse common facilities
   - Make different devices look the same
@@ -252,16 +258,18 @@ Memory Address Space
 - [Challenges]{.alert}?
   - What are the correct abstractions?
   - How much should be exposed?
+:::
 
 ## OS design requirements - what do we need?
-
+:::{.incremental}
 - [Convenience]{.alert}, abstraction of hardware resources for user programs
 - [Efficiency]{.alert} of usage of CPU, memory, etc.
 - [Isolation]{.alert} between multiple processes
 - [Reliability]{.alert}, the OS must not fail
 - Other:
-  - Security
-  - Mobility
+  - [Security]{.alert}
+  - [Mobility]{.alert}
+:::
 
 ## {background-color="#6E404F"}
 
@@ -280,8 +288,7 @@ Comments? Thoughts?
 :::
 
 ## OS as a resource manager
-
-
+:::{.incremental}
 - Another view: [resource manager]{.alert} - shares resources "well"
 - [Advantages]{.alert} of the OS managing resources?
   - Protect applications from one another
@@ -290,22 +297,25 @@ Comments? Thoughts?
 - [Challenges]{.alert}?
   - What are the correct mechanisms?
   - What are the correct policies?
+:::
 
 ## Resources are managed via [services]{.alert}
-
+:::{.incremental}
 - Program Execution (loading, running, monitoring, terminating)
 - Performance (optimizing resources under constraints)
 - Correctness (overseeing critical operations, preventing interference)
 - Fairness (access to and allocation of resources)
 - Error detection & recovery (network partition & media failure)
+:::
 
 ## Services (cont'd)
-
+:::{.incremental}
 - Communication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)
 - I/O: reading & writing, support for various mediums, devices, performance, and protections
 - Data Organization (naming), Services (search) & Protection (access control)
 - Security (isolation, enforcement, services, authentication, accounting and logging, trust)
 - User interfaces (command-line, GUIs, multiple users)
+:::
 
 ## Each service has [challenges]{.alert} and [tensions]{.alert}
 
@@ -352,22 +362,24 @@ Comments? Thoughts?
   - Jumps to it
 
 ## Power-On
-
+:::{.incremental}
 - CPU resets
 - Instruction pointer set to a fixed address
 - Execution begins in firmware (ROM)
 - [The CPU does not know what an OS is]{.alert}
+:::
 
 ## Firmware (BIOS / UEFI)
-
+:::{.incremental}
 - Initializes RAM
 - Initializes minimal hardware
 - Finds one program to run (bootloader)
 - Loads it into memory
 - Jumps to it
+:::
 
 ## Bootloader's job (GRUB Example)
-
+:::{.incremental}
 - Understand filesystems
 - Load the kernel image
 - Load the initramfs
@@ -379,26 +391,31 @@ Comments? Thoughts?
   init=/sbin/init
   console=ttyS0
   ```
+:::
 
 ## What the bootloader does [not]{.alert} do
-
+:::{.incremental}
 - Does not schedule processes
 - Does not manage memory long-term
 - Does not run the OS
+:::
 
 ## Kernel
-
+:::{.incremental}
 Think of the kernel in phases
 
 1. Self-setup
 2. Hardware abstraction
 3. Userspace handoff
+:::
 
 ## Kernel self-setup
+:::{.incremental}
 -	Sets up page tables
 - Enables virtual memory
 - Initializes scheduler
 - Sets up interrupts
+:::
 
 :::{.fragment}
 The kernel cannot rely on [anything]{.alert} yet: it is building the world.
@@ -406,30 +423,36 @@ The kernel cannot rely on [anything]{.alert} yet: it is building the world.
 
 ## Kernel hardware abstractions
 ### This is where hardware becomes an abstraction.
+:::{.incremental}
 - Detects hardware
 - Loads drivers
 - Turns devices into files:
   - `/dev/sda`
   - `/dev/tty`
 - Creates kernel threads
+:::
 
 ## Userspace handoff
+:::{.incremental}
 - Mounts the root filesystem
 - Chooses one program to run
 - Executes it with `execve()`
   ```{.c}
   execve("/sbin/init", ...);
   ```
+:::
 
 ## Init (PID 1)
+:::{.incremental}
 - First userspace process
 - Always PID 1
 - Parent of all other processes
+:::
 
-:::{.fragment}
+:::{.fragment .incremental}
 If PID 1 exits?
 
-- The kernel panics or shuts down
+- The kernel [panics]{.alert} or shuts down
 :::
 
 ## {background-color="#6E404F"}
@@ -458,14 +481,15 @@ Comments? Thoughts?
   - Device drivers
 
 ## Monolithic kernels
-
+:::{.incremental}
 - Oldest, very common design (Linux, Windows 9x, BSDs)
 - Single piece of code in memory
 - Limited [information hiding]{.alert}
   - One part of the kernel can directly access data and functions of other parts
+:::
 
 ## Monolithic kernels (cont'd)
-
+:::{.incremental}
 - Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)?
 - [Modules]{.alert} (loadable kernel modules - LKMs) allow for flexibility, customization, support
   - Pros?
@@ -475,25 +499,27 @@ Comments? Thoughts?
   - Cons?
     - (minor) fragmentation: the base kernel can be loaded contiguously in memory
     - Security ([https://github.com/m0nad/Diamorphine](https://github.com/m0nad/Diamorphine) **DO NOT USE THIS, IT'S SIMPLY TO SHOW YOU**)
+:::
 
 ## Layered kernels
-
+:::{.incremental}
 - Dijkstra created the THE OS in the 60s, introducing the concept
 Each inner layer is more privileged; required a trap to move down layers
 - Hardware-enforcement possible
 - Intel [announced](https://www.intel.com/content/www/us/en/developer/articles/technical/envisioning-future-simplified-architecture.html) in May 2024 that the new architectures will only have rings 0 and 3
+:::
 
 ## Microkernels
 
 :::: {.columns}
 
-::: {.column width="55%"}
+::: {.column width="55%" .incremental}
 
 - Popular research area long ago, didn't win (although people remain interested in the principles)
 - All non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management
 - A collection of OS services running in user space
 - Downsides?
-  - Heavy communication costs through message passing (marshaled through the kernel)
+  - **Heavy communication costs** through message passing (marshaled through the kernel)
 
 :::
 
