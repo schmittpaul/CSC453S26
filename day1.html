@@ -1106,9 +1106,11 @@ margin-right: 0; }
 <section id="this-class-1" class="slide level2">
 <h2>This class</h2>
 <ul>
-<li class="fragment">Too much to cover in one term: survey of important topics</li>
-<li class="fragment">Course Canvas: <a href="https://canvas.calpoly.edu/courses/168889">https://canvas.calpoly.edu/courses/168889</a></li>
-<li class="fragment">Syllabus: <a href="https://schmittpaul.github.io/CSC453W26/syllabus.pdf">https://schmittpaul.github.io/CSC453W26/syllabus.pdf</a></li>
+<li>Too much to cover in one term: survey of important topics</li>
+<li>Course Canvas: <a href="https://canvas.calpoly.edu/courses/178871">https://canvas.calpoly.edu/courses/178871</a></li>
+<li>Syllabus: <a href="https://schmittpaul.github.io/CSC453S26/syllabus.pdf">https://schmittpaul.github.io/CSC453S26/syllabus.pdf</a></li>
+</ul>
+<ul>
 <li class="fragment">Waitlists…</li>
 <li class="fragment">What OSes do you all run?</li>
 </ul>
@@ -1156,10 +1158,10 @@ margin-right: 0; }
 <section id="why-take-this-class" class="slide level2">
 <h2>Why take this class</h2>
 <ul>
-<li class="fragment">You are required to do so in order to graduate</li>
-<li class="fragment"><span class="alert">Reality</span>: this is how computers really work, and as a computer scientist or engineer you should know how computers really work</li>
-<li class="fragment"><span class="alert">Ubiquity</span>: operating systems are everywhere and you are likely to eventually encounter them or their limitations</li>
-<li class="fragment"><span class="alert">Beauty</span>: operating systems are examples of mature solutions to difficult design and engineering problems. Studying them will improve your ability to design and implement abstractions</li>
+<li>You are required to do so in order to graduate</li>
+<li><span class="alert">Reality</span>: this is how computers really work, and as a computer scientist or engineer you should know how computers really work</li>
+<li><span class="alert">Ubiquity</span>: operating systems are everywhere and you are likely to eventually encounter them or their limitations</li>
+<li><span class="alert">Beauty</span>: operating systems are examples of mature solutions to difficult design and engineering problems. Studying them will improve your ability to design and implement abstractions</li>
 </ul>
 </section>
 <section id="course-progression" class="slide level2">
@@ -1253,13 +1255,13 @@ display:block!important;
 <section id="types-of-operating-systems" class="slide level2">
 <h2>Types of operating systems</h2>
 <ul>
-<li class="fragment">Desktop</li>
-<li class="fragment">Time share/Mainframe</li>
-<li class="fragment">Mobile</li>
-<li class="fragment">Web</li>
-<li class="fragment">Real-time</li>
-<li class="fragment">Embedded</li>
-<li class="fragment">Virtual Machines</li>
+<li>Desktop</li>
+<li>Time share/Mainframe</li>
+<li>Mobile</li>
+<li>Web</li>
+<li>Real-time</li>
+<li>Embedded</li>
+<li>Virtual Machines</li>
 </ul>
 </section>
 <section id="tldr" class="slide level2">
@@ -1412,8 +1414,8 @@ display:block!important;
 <li class="fragment"><span class="alert">Reliability</span>, the OS must not fail</li>
 <li class="fragment">Other:
 <ul>
-<li class="fragment">Security</li>
-<li class="fragment">Mobility</li>
+<li class="fragment"><span class="alert">Security</span></li>
+<li class="fragment"><span class="alert">Mobility</span></li>
 </ul></li>
 </ul>
 </section>
@@ -1476,23 +1478,23 @@ display:block!important;
 <h2>Each service has <span class="alert">challenges</span> and <span class="alert">tensions</span></h2>
 <p>Example 1: We have limited RAM, and we want to run more programs that can be stored.</p>
 <ul>
-<li class="fragment">How do we allocate space?</li>
-<li class="fragment">Who stays?</li>
-<li class="fragment">Who goes?</li>
-<li class="fragment">What if we’re wrong?</li>
-<li class="fragment">What if the system is under extremely heavy load?</li>
-<li class="fragment">Is there a way to predict the future?</li>
+<li>How do we allocate space?</li>
+<li>Who stays?</li>
+<li>Who goes?</li>
+<li>What if we’re wrong?</li>
+<li>What if the system is under extremely heavy load?</li>
+<li>Is there a way to predict the future?</li>
 </ul>
 </section>
 <section id="each-service-has-challenges-and-tensions-1" class="slide level2">
 <h2>Each service has <span class="alert">challenges</span> and <span class="alert">tensions</span></h2>
 <p>Example 2: We have two process (producer / consumer); how do they communicate?</p>
 <ul>
-<li class="fragment">Message passing? Shared memory?</li>
-<li class="fragment">How do they synchronize?
+<li>Message passing? Shared memory?</li>
+<li>How do they synchronize?
 <ul>
-<li class="fragment">How to we prevent over-production? Over-consumption?</li>
-<li class="fragment">Context-switching?</li>
+<li>How to we prevent over-production? Over-consumption?</li>
+<li>Context-switching?</li>
 </ul></li>
 </ul>
 </section>
@@ -1518,12 +1520,12 @@ display:block!important;
 <section id="boot-is-like-a-relay-race" class="slide level2">
 <h2>Boot is like a relay race</h2>
 <ul>
-<li class="fragment">A sequence of programs</li>
-<li class="fragment">Each stage:
+<li>A sequence of programs</li>
+<li>Each stage:
 <ul>
-<li class="fragment">Has slightly more power</li>
-<li class="fragment">Loads the next stage</li>
-<li class="fragment">Jumps to it</li>
+<li>Has slightly more power</li>
+<li>Loads the next stage</li>
+<li>Jumps to it</li>
 </ul></li>
 </ul>
 </section>
@@ -1622,7 +1624,7 @@ display:block!important;
 <div class="fragment">
 <p>If PID 1 exits?</p>
 <ul>
-<li class="fragment">The kernel panics or shuts down</li>
+<li class="fragment">The kernel <span class="alert">panics</span> or shuts down</li>
 </ul>
 </div>
 </section>
@@ -1648,14 +1650,14 @@ display:block!important;
 <section id="paradigms" class="slide level2">
 <h2>Paradigms</h2>
 <ul>
-<li class="fragment">The OS offers a number of services. What should go in the kernel?
+<li>The OS offers a number of services. What should go in the kernel?
 <ul>
-<li class="fragment">IPC</li>
-<li class="fragment">VFS</li>
-<li class="fragment">File system</li>
-<li class="fragment">Scheduler</li>
-<li class="fragment">Virtual Memory</li>
-<li class="fragment">Device drivers</li>
+<li>IPC</li>
+<li>VFS</li>
+<li>File system</li>
+<li>Scheduler</li>
+<li>Virtual Memory</li>
+<li>Device drivers</li>
 </ul></li>
 </ul>
 </section>
@@ -1708,7 +1710,7 @@ display:block!important;
 <li class="fragment">A collection of OS services running in user space</li>
 <li class="fragment">Downsides?
 <ul>
-<li class="fragment">Heavy communication costs through message passing (marshaled through the kernel)</li>
+<li class="fragment"><strong>Heavy communication costs</strong> through message passing (marshaled through the kernel)</li>
 </ul></li>
 </ul>
 </div><div class="column" style="width:5%;">
