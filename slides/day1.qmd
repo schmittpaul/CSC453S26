@@ -14,7 +14,7 @@ format:
 - [https://pschmitt.net](https://pschmitt.net)
 - Academics
   - PhD at UCSB
-  - Researcher (summers) at ICSI
+  - Researcher at UC Berkeley (ICSI)
   - Postdoc then research faculty at Princeton
   - Some other stops… USC, Stanford, UH
 - Privacy startup co-founder & CEO, measurement startup COO
