@@ -1,264 +1,5 @@
 [
   {
-    "objectID": "day2.html#admin",
-    "href": "day2.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab 1 due Thursday, 11:59 PM\nAssignment 1 due April 15"
-  },
-  {
-    "objectID": "day2.html#questions-to-consider",
-    "href": "day2.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the main abstractions OSes provide?\nWhat are the abstraction challenges?"
-  },
-  {
-    "objectID": "day2.html#abstractions",
-    "href": "day2.html#abstractions",
-    "title": "CSC 453",
-    "section": "Abstractions",
-    "text": "Abstractions\n\nAbstractions simplify application design by:\n\nhiding undesirable properties,\nadding new capabilities, and\norganizing information\n\nAbstractions provide an interface to application programmers that separates policy—what the interface commits to accomplishing—from mechanism—how the interface is implemented."
-  },
-  {
-    "objectID": "day2.html#what-are-the-abstractions",
-    "href": "day2.html#what-are-the-abstractions",
-    "title": "CSC 453",
-    "section": "What are the abstractions?",
-    "text": "What are the abstractions?\n\nCPUs\n\nProcesses, threads\n\nMemory\n\nAddress space\n\nDisk\n\nFiles"
-  },
-  {
-    "objectID": "day2.html#example-os-abstraction-file-systems",
-    "href": "day2.html#example-os-abstraction-file-systems",
-    "title": "CSC 453",
-    "section": "Example OS abstraction: file systems",
-    "text": "Example OS abstraction: file systems\n\nWhat undesirable properties do file systems hide?\n\nDisks are slow!\nChunks of storage are actually distributed all over the disk\nDisk storage may fail!\n\nWhat new capabilities do files add?\n\nGrowth and shrinking\nOrganization into directories, searchability\n\nWhat information do files help organize?\n\nOwnership and permissions\nAccess time, modification time, type, etc."
-  },
-  {
-    "objectID": "day2.html#abstraction-tradeoffs---discussion",
-    "href": "day2.html#abstraction-tradeoffs---discussion",
-    "title": "CSC 453",
-    "section": "Abstraction tradeoffs - discussion",
-    "text": "Abstraction tradeoffs - discussion\n\nIdentify undesirable properties hidden by, new capabilities added, and info organization provided with these abstractions:\n\nProcess / threads\nAddress space\n\n\n\nProcesses/Threads\n\nHiding undesirable properties:\n\nExample: The process abstraction hides the complexity of CPU scheduling and context switching. Applications don’t need to manage the low-level details of how the CPU switches between different tasks. Similarly, the thread abstraction hides the intricacies of managing multiple execution paths within a single process, allowing developers to focus on the logic of concurrent tasks.\n\nAdding new capabilities:\n\nExample: Processes provide isolation between different applications, ensuring that one misbehaving application doesn’t affect others. Threads within a process allow for parallel execution of tasks, improving performance and responsiveness. Additionally, operating systems often provide inter-process communication (IPC) mechanisms, enabling processes to coordinate and share data.\n\nOrganizing information:\n\nExample: The process abstraction organizes the execution environment by encapsulating the code, data, and resources needed for a program to run. Threads further organize execution by dividing tasks within a process into smaller, manageable units. This organization helps in structuring complex applications and improving their maintainability.\n\n\nMemory Address Space\n\nHiding undesirable properties:\n\nExample: The memory address space abstraction hides the physical memory layout from applications. Programs use virtual addresses, which the operating system maps to physical memory locations. This abstraction also hides the details of memory fragmentation and allocation, simplifying memory management for developers.\n\nAdding new capabilities:\n\nExample: Virtual memory allows applications to use more memory than physically available by swapping data to and from disk. This capability enables larger and more complex applications to run on systems with limited physical memory. Additionally, memory protection mechanisms prevent one process from accessing the memory of another, enhancing system stability and security.\n\nOrganizing information:\n\nExample: The memory address space abstraction organizes memory into segments such as code, data, heap, and stack. This organization helps in managing different types of data efficiently and ensures that memory is used in a structured manner. For instance, the stack is used for function calls and local variables, while the heap is used for dynamic memory allocation."
-  },
-  {
-    "objectID": "day2.html#abstraction-pros-cons",
-    "href": "day2.html#abstraction-pros-cons",
-    "title": "CSC 453",
-    "section": "Abstraction pros / cons",
-    "text": "Abstraction pros / cons\n\nAdvantages of OS providing abstractions?\n\nAllow applications to reuse common facilities\nMake different devices look the same\nProvide higher-level or more useful functionality\n\nChallenges?\n\nWhat are the correct abstractions?\nHow much should be exposed?"
-  },
-  {
-    "objectID": "day2.html#os-design-requirements---what-do-we-need",
-    "href": "day2.html#os-design-requirements---what-do-we-need",
-    "title": "CSC 453",
-    "section": "OS design requirements - what do we need?",
-    "text": "OS design requirements - what do we need?\n\nConvenience, abstraction of hardware resources for user programs\nEfficiency of usage of CPU, memory, etc.\nIsolation between multiple processes\nReliability, the OS must not fail\nOther:\n\nSecurity\nMobility"
-  },
-  {
-    "objectID": "day2.html#section",
-    "href": "day2.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day2.html#questions-to-consider-1",
-    "href": "day2.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow does the OS manage access to resources?"
-  },
-  {
-    "objectID": "day2.html#os-as-a-resource-manager",
-    "href": "day2.html#os-as-a-resource-manager",
-    "title": "CSC 453",
-    "section": "OS as a resource manager",
-    "text": "OS as a resource manager\n\nAnother view: resource manager - shares resources “well”\nAdvantages of the OS managing resources?\n\nProtect applications from one another\nProvide efficient access to resources (cost, time, energy)\nProvide fair access to resources\n\nChallenges?\n\nWhat are the correct mechanisms?\nWhat are the correct policies?"
-  },
-  {
-    "objectID": "day2.html#resources-are-managed-via-services",
-    "href": "day2.html#resources-are-managed-via-services",
-    "title": "CSC 453",
-    "section": "Resources are managed via services",
-    "text": "Resources are managed via services\n\nProgram Execution (loading, running, monitoring, terminating)\nPerformance (optimizing resources under constraints)\nCorrectness (overseeing critical operations, preventing interference)\nFairness (access to and allocation of resources)\nError detection & recovery (network partition & media failure)"
-  },
-  {
-    "objectID": "day2.html#services-contd",
-    "href": "day2.html#services-contd",
-    "title": "CSC 453",
-    "section": "Services (cont’d)",
-    "text": "Services (cont’d)\n\nCommunication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)\nI/O: reading & writing, support for various mediums, devices, performance, and protections\nData Organization (naming), Services (search) & Protection (access control)\nSecurity (isolation, enforcement, services, authentication, accounting and logging, trust)\nUser interfaces (command-line, GUIs, multiple users)"
-  },
-  {
-    "objectID": "day2.html#each-service-has-challenges-and-tensions",
-    "href": "day2.html#each-service-has-challenges-and-tensions",
-    "title": "CSC 453",
-    "section": "Each service has challenges and tensions",
-    "text": "Each service has challenges and tensions\nExample 1: We have limited RAM, and we want to run more programs that can be stored.\n\nHow do we allocate space?\nWho stays?\nWho goes?\nWhat if we’re wrong?\nWhat if the system is under extremely heavy load?\nIs there a way to predict the future?"
-  },
-  {
-    "objectID": "day2.html#each-service-has-challenges-and-tensions-1",
-    "href": "day2.html#each-service-has-challenges-and-tensions-1",
-    "title": "CSC 453",
-    "section": "Each service has challenges and tensions",
-    "text": "Each service has challenges and tensions\nExample 2: We have two processes (producer / consumer); how do they communicate?\n\nMessage passing? Shared memory?\nHow do they synchronize?\n\nHow do we prevent over-production? Over-consumption?\nContext-switching?"
-  },
-  {
-    "objectID": "day2.html#section-1",
-    "href": "day2.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day2.html#questions-to-consider-2",
-    "href": "day2.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat is the chain of events that takes place before you are able to run a process?\nWhere do the different parts of the chain reside? How are they called?"
-  },
-  {
-    "objectID": "day2.html#boot-is-like-a-relay-race",
-    "href": "day2.html#boot-is-like-a-relay-race",
-    "title": "CSC 453",
-    "section": "Boot is like a relay race",
-    "text": "Boot is like a relay race\n\nA sequence of programs\nEach stage:\n\nHas slightly more power\nLoads the next stage\nJumps to it"
-  },
-  {
-    "objectID": "day2.html#power-on",
-    "href": "day2.html#power-on",
-    "title": "CSC 453",
-    "section": "Power-On",
-    "text": "Power-On\n\nCPU resets\nInstruction pointer set to a fixed address\nExecution begins in firmware (ROM)\nThe CPU does not know what an OS is"
-  },
-  {
-    "objectID": "day2.html#firmware-bios-uefi",
-    "href": "day2.html#firmware-bios-uefi",
-    "title": "CSC 453",
-    "section": "Firmware (BIOS / UEFI)",
-    "text": "Firmware (BIOS / UEFI)\n\nInitializes RAM\nInitializes minimal hardware\nFinds one program to run (bootloader)\nLoads it into memory\nJumps to it"
-  },
-  {
-    "objectID": "day2.html#bootloaders-job-grub-example",
-    "href": "day2.html#bootloaders-job-grub-example",
-    "title": "CSC 453",
-    "section": "Bootloader’s job (GRUB Example)",
-    "text": "Bootloader’s job (GRUB Example)\n\nUnderstand filesystems\nLoad the kernel image\nLoad the initramfs\nJump to the kernel entry point\nProvides kernel command line args\nroot=/dev/sda1\ninit=/sbin/init\nconsole=ttyS0"
-  },
-  {
-    "objectID": "day2.html#what-the-bootloader-does-not-do",
-    "href": "day2.html#what-the-bootloader-does-not-do",
-    "title": "CSC 453",
-    "section": "What the bootloader does not do",
-    "text": "What the bootloader does not do\n\nDoes not schedule processes\nDoes not manage memory long-term\nDoes not run the OS"
-  },
-  {
-    "objectID": "day2.html#kernel",
-    "href": "day2.html#kernel",
-    "title": "CSC 453",
-    "section": "Kernel",
-    "text": "Kernel\nThink of the kernel in phases\n\nSelf-setup\nHardware abstraction\nUserspace handoff"
-  },
-  {
-    "objectID": "day2.html#kernel-self-setup",
-    "href": "day2.html#kernel-self-setup",
-    "title": "CSC 453",
-    "section": "Kernel self-setup",
-    "text": "Kernel self-setup\n\nSets up page tables\nEnables virtual memory\nInitializes scheduler\nSets up interrupts\n\n\nThe kernel cannot rely on anything yet: it is building the world."
-  },
-  {
-    "objectID": "day2.html#kernel-hardware-abstractions",
-    "href": "day2.html#kernel-hardware-abstractions",
-    "title": "CSC 453",
-    "section": "Kernel hardware abstractions",
-    "text": "Kernel hardware abstractions\nThis is where hardware becomes an abstraction.\n\nDetects hardware\nLoads drivers\nTurns devices into files:\n\n/dev/sda\n/dev/tty\n\nCreates kernel threads"
-  },
-  {
-    "objectID": "day2.html#userspace-handoff",
-    "href": "day2.html#userspace-handoff",
-    "title": "CSC 453",
-    "section": "Userspace handoff",
-    "text": "Userspace handoff\n\nMounts the root filesystem\nChooses one program to run\nExecutes it with execve()\nexecve(\"/sbin/init\", ...);"
-  },
-  {
-    "objectID": "day2.html#init-pid-1",
-    "href": "day2.html#init-pid-1",
-    "title": "CSC 453",
-    "section": "Init (PID 1)",
-    "text": "Init (PID 1)\n\nFirst userspace process\nAlways PID 1\nParent of all other processes\n\n\nIf PID 1 exits?\n\nThe kernel panics or shuts down"
-  },
-  {
-    "objectID": "day2.html#section-2",
-    "href": "day2.html#section-2",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day2.html#questions-to-consider-3",
-    "href": "day2.html#questions-to-consider-3",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the different kernel paradigms?\nWhy would you choose one over the other?"
-  },
-  {
-    "objectID": "day2.html#paradigms",
-    "href": "day2.html#paradigms",
-    "title": "CSC 453",
-    "section": "Paradigms",
-    "text": "Paradigms\n\nThe OS offers a number of services. What should go in the kernel?\n\nIPC\nVFS\nFile system\nScheduler\nVirtual Memory\nDevice drivers"
-  },
-  {
-    "objectID": "day2.html#monolithic-kernels",
-    "href": "day2.html#monolithic-kernels",
-    "title": "CSC 453",
-    "section": "Monolithic kernels",
-    "text": "Monolithic kernels\n\nOldest, very common design (Linux, Windows 9x, BSDs)\nSingle piece of code in memory\nLimited information hiding\n\nOne part of the kernel can directly access data and functions of other parts"
-  },
-  {
-    "objectID": "day2.html#monolithic-kernels-contd",
-    "href": "day2.html#monolithic-kernels-contd",
-    "title": "CSC 453",
-    "section": "Monolithic kernels (cont’d)",
-    "text": "Monolithic kernels (cont’d)\n\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
-  },
-  {
-    "objectID": "day2.html#layered-kernels",
-    "href": "day2.html#layered-kernels",
-    "title": "CSC 453",
-    "section": "Layered kernels",
-    "text": "Layered kernels\n\nDijkstra created the THE OS in the 60s, introducing the concept Each inner layer is more privileged; required a trap to move down layers\nHardware-enforcement possible\nIntel announced in May 2024 that the new architectures will only have rings 0 and 3"
-  },
-  {
-    "objectID": "day2.html#microkernels",
-    "href": "day2.html#microkernels",
-    "title": "CSC 453",
-    "section": "Microkernels",
-    "text": "Microkernels\n\n\n\nPopular research area long ago, didn’t win (although people remain interested in the principles)\nAll non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management\nA collection of OS services running in user space\nDownsides?\n\nHeavy communication costs through message passing (marshaled through the kernel)"
-  },
-  {
-    "objectID": "day2.html#monolithic-vs-microkernel",
-    "href": "day2.html#monolithic-vs-microkernel",
-    "title": "CSC 453",
-    "section": "Monolithic vs Microkernel",
-    "text": "Monolithic vs Microkernel"
-  },
-  {
-    "objectID": "day2.html#hybrid-kernels",
-    "href": "day2.html#hybrid-kernels",
-    "title": "CSC 453",
-    "section": "Hybrid kernels",
-    "text": "Hybrid kernels\n\nCombine a monolithic core with microkernel ideas\nSmall kernel handles critical services (scheduling, IPC, low-level memory)\nOther services (file systems, drivers) can run in kernel or user space\nExamples: macOS (XNU), Windows NT\n\nXNU: Mach microkernel + BSD monolithic layer\nWindows NT: microkernel-inspired, but most services run in kernel mode for performance\n\nPragmatic compromise: microkernel isolation where it matters, monolithic speed where it doesn’t"
-  },
-  {
-    "objectID": "day2.html#section-3",
-    "href": "day2.html#section-3",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
     "objectID": "day1.html#who-am-i",
     "href": "day1.html#who-am-i",
     "title": "CSC 453",
@@ -716,6 +457,265 @@
   {
     "objectID": "day3.html#section-4",
     "href": "day3.html#section-4",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day2.html#admin",
+    "href": "day2.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab 1 due Thursday, 11:59 PM\nAssignment 1 due April 15"
+  },
+  {
+    "objectID": "day2.html#questions-to-consider",
+    "href": "day2.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the main abstractions OSes provide?\nWhat are the abstraction challenges?"
+  },
+  {
+    "objectID": "day2.html#abstractions",
+    "href": "day2.html#abstractions",
+    "title": "CSC 453",
+    "section": "Abstractions",
+    "text": "Abstractions\n\nAbstractions simplify application design by:\n\nhiding undesirable properties,\nadding new capabilities, and\norganizing information\n\nAbstractions provide an interface to application programmers that separates policy—what the interface commits to accomplishing—from mechanism—how the interface is implemented."
+  },
+  {
+    "objectID": "day2.html#what-are-the-abstractions",
+    "href": "day2.html#what-are-the-abstractions",
+    "title": "CSC 453",
+    "section": "What are the abstractions?",
+    "text": "What are the abstractions?\n\nCPUs\n\nProcesses, threads\n\nMemory\n\nAddress space\n\nDisk\n\nFiles"
+  },
+  {
+    "objectID": "day2.html#example-os-abstraction-file-systems",
+    "href": "day2.html#example-os-abstraction-file-systems",
+    "title": "CSC 453",
+    "section": "Example OS abstraction: file systems",
+    "text": "Example OS abstraction: file systems\n\nWhat undesirable properties do file systems hide?\n\nDisks are slow!\nChunks of storage are actually distributed all over the disk\nDisk storage may fail!\n\nWhat new capabilities do files add?\n\nGrowth and shrinking\nOrganization into directories, searchability\n\nWhat information do files help organize?\n\nOwnership and permissions\nAccess time, modification time, type, etc."
+  },
+  {
+    "objectID": "day2.html#abstraction-tradeoffs---discussion",
+    "href": "day2.html#abstraction-tradeoffs---discussion",
+    "title": "CSC 453",
+    "section": "Abstraction tradeoffs - discussion",
+    "text": "Abstraction tradeoffs - discussion\n\nIdentify undesirable properties hidden by, new capabilities added, and info organization provided with these abstractions:\n\nProcess / threads\nAddress space\n\n\n\nProcesses/Threads\n\nHiding undesirable properties:\n\nExample: The process abstraction hides the complexity of CPU scheduling and context switching. Applications don’t need to manage the low-level details of how the CPU switches between different tasks. Similarly, the thread abstraction hides the intricacies of managing multiple execution paths within a single process, allowing developers to focus on the logic of concurrent tasks.\n\nAdding new capabilities:\n\nExample: Processes provide isolation between different applications, ensuring that one misbehaving application doesn’t affect others. Threads within a process allow for parallel execution of tasks, improving performance and responsiveness. Additionally, operating systems often provide inter-process communication (IPC) mechanisms, enabling processes to coordinate and share data.\n\nOrganizing information:\n\nExample: The process abstraction organizes the execution environment by encapsulating the code, data, and resources needed for a program to run. Threads further organize execution by dividing tasks within a process into smaller, manageable units. This organization helps in structuring complex applications and improving their maintainability.\n\n\nMemory Address Space\n\nHiding undesirable properties:\n\nExample: The memory address space abstraction hides the physical memory layout from applications. Programs use virtual addresses, which the operating system maps to physical memory locations. This abstraction also hides the details of memory fragmentation and allocation, simplifying memory management for developers.\n\nAdding new capabilities:\n\nExample: Virtual memory allows applications to use more memory than physically available by swapping data to and from disk. This capability enables larger and more complex applications to run on systems with limited physical memory. Additionally, memory protection mechanisms prevent one process from accessing the memory of another, enhancing system stability and security.\n\nOrganizing information:\n\nExample: The memory address space abstraction organizes memory into segments such as code, data, heap, and stack. This organization helps in managing different types of data efficiently and ensures that memory is used in a structured manner. For instance, the stack is used for function calls and local variables, while the heap is used for dynamic memory allocation."
+  },
+  {
+    "objectID": "day2.html#abstraction-pros-cons",
+    "href": "day2.html#abstraction-pros-cons",
+    "title": "CSC 453",
+    "section": "Abstraction pros / cons",
+    "text": "Abstraction pros / cons\n\nAdvantages of OS providing abstractions?\n\nAllow applications to reuse common facilities\nMake different devices look the same\nProvide higher-level or more useful functionality\n\nChallenges?\n\nWhat are the correct abstractions?\nHow much should be exposed?"
+  },
+  {
+    "objectID": "day2.html#os-design-requirements---what-do-we-need",
+    "href": "day2.html#os-design-requirements---what-do-we-need",
+    "title": "CSC 453",
+    "section": "OS design requirements - what do we need?",
+    "text": "OS design requirements - what do we need?\n\nConvenience, abstraction of hardware resources for user programs\nEfficiency of usage of CPU, memory, etc.\nIsolation between multiple processes\nReliability, the OS must not fail\nOther:\n\nSecurity\nMobility"
+  },
+  {
+    "objectID": "day2.html#section",
+    "href": "day2.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day2.html#questions-to-consider-1",
+    "href": "day2.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does the OS manage access to resources?"
+  },
+  {
+    "objectID": "day2.html#os-as-a-resource-manager",
+    "href": "day2.html#os-as-a-resource-manager",
+    "title": "CSC 453",
+    "section": "OS as a resource manager",
+    "text": "OS as a resource manager\n\nAnother view: resource manager - shares resources “well”\nAdvantages of the OS managing resources?\n\nProtect applications from one another\nProvide efficient access to resources (cost, time, energy)\nProvide fair access to resources\n\nChallenges?\n\nWhat are the correct mechanisms?\nWhat are the correct policies?"
+  },
+  {
+    "objectID": "day2.html#resources-are-managed-via-services",
+    "href": "day2.html#resources-are-managed-via-services",
+    "title": "CSC 453",
+    "section": "Resources are managed via services",
+    "text": "Resources are managed via services\n\nProgram Execution (loading, running, monitoring, terminating)\nPerformance (optimizing resources under constraints)\nCorrectness (overseeing critical operations, preventing interference)\nFairness (access to and allocation of resources)\nError detection & recovery (network partition & media failure)"
+  },
+  {
+    "objectID": "day2.html#services-contd",
+    "href": "day2.html#services-contd",
+    "title": "CSC 453",
+    "section": "Services (cont’d)",
+    "text": "Services (cont’d)\n\nCommunication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)\nI/O: reading & writing, support for various mediums, devices, performance, and protections\nData Organization (naming), Services (search) & Protection (access control)\nSecurity (isolation, enforcement, services, authentication, accounting and logging, trust)\nUser interfaces (command-line, GUIs, multiple users)"
+  },
+  {
+    "objectID": "day2.html#each-service-has-challenges-and-tensions",
+    "href": "day2.html#each-service-has-challenges-and-tensions",
+    "title": "CSC 453",
+    "section": "Each service has challenges and tensions",
+    "text": "Each service has challenges and tensions\nExample 1: We have limited RAM, and we want to run more programs that can be stored.\n\nHow do we allocate space?\nWho stays?\nWho goes?\nWhat if we’re wrong?\nWhat if the system is under extremely heavy load?\nIs there a way to predict the future?"
+  },
+  {
+    "objectID": "day2.html#each-service-has-challenges-and-tensions-1",
+    "href": "day2.html#each-service-has-challenges-and-tensions-1",
+    "title": "CSC 453",
+    "section": "Each service has challenges and tensions",
+    "text": "Each service has challenges and tensions\nExample 2: We have two processes (producer / consumer); how do they communicate?\n\nMessage passing? Shared memory?\nHow do they synchronize?\n\nHow do we prevent over-production? Over-consumption?\nContext-switching?"
+  },
+  {
+    "objectID": "day2.html#section-1",
+    "href": "day2.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day2.html#questions-to-consider-2",
+    "href": "day2.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat is the chain of events that takes place before you are able to run a process?\nWhere do the different parts of the chain reside? How are they called?"
+  },
+  {
+    "objectID": "day2.html#boot-is-like-a-relay-race",
+    "href": "day2.html#boot-is-like-a-relay-race",
+    "title": "CSC 453",
+    "section": "Boot is like a relay race",
+    "text": "Boot is like a relay race\n\nA sequence of programs\nEach stage:\n\nHas slightly more power\nLoads the next stage\nJumps to it"
+  },
+  {
+    "objectID": "day2.html#power-on",
+    "href": "day2.html#power-on",
+    "title": "CSC 453",
+    "section": "Power-On",
+    "text": "Power-On\n\nCPU resets\nInstruction pointer set to a fixed address\nExecution begins in firmware (ROM)\nThe CPU does not know what an OS is"
+  },
+  {
+    "objectID": "day2.html#firmware-bios-uefi",
+    "href": "day2.html#firmware-bios-uefi",
+    "title": "CSC 453",
+    "section": "Firmware (BIOS / UEFI)",
+    "text": "Firmware (BIOS / UEFI)\n\nInitializes RAM\nInitializes minimal hardware\nFinds one program to run (bootloader)\nLoads it into memory\nJumps to it"
+  },
+  {
+    "objectID": "day2.html#bootloaders-job-grub-example",
+    "href": "day2.html#bootloaders-job-grub-example",
+    "title": "CSC 453",
+    "section": "Bootloader’s job (GRUB Example)",
+    "text": "Bootloader’s job (GRUB Example)\n\nUnderstand filesystems\nLoad the kernel image\nLoad the initramfs\nJump to the kernel entry point\nProvides kernel command line args\nroot=/dev/sda1\ninit=/sbin/init\nconsole=ttyS0"
+  },
+  {
+    "objectID": "day2.html#what-the-bootloader-does-not-do",
+    "href": "day2.html#what-the-bootloader-does-not-do",
+    "title": "CSC 453",
+    "section": "What the bootloader does not do",
+    "text": "What the bootloader does not do\n\nDoes not schedule processes\nDoes not manage memory long-term\nDoes not run the OS"
+  },
+  {
+    "objectID": "day2.html#kernel",
+    "href": "day2.html#kernel",
+    "title": "CSC 453",
+    "section": "Kernel",
+    "text": "Kernel\nThink of the kernel in phases\n\nSelf-setup\nHardware abstraction\nUserspace handoff"
+  },
+  {
+    "objectID": "day2.html#kernel-self-setup",
+    "href": "day2.html#kernel-self-setup",
+    "title": "CSC 453",
+    "section": "Kernel self-setup",
+    "text": "Kernel self-setup\n\nSets up page tables\nEnables virtual memory\nInitializes scheduler\nSets up interrupts\n\n\nThe kernel cannot rely on anything yet: it is building the world."
+  },
+  {
+    "objectID": "day2.html#kernel-hardware-abstractions",
+    "href": "day2.html#kernel-hardware-abstractions",
+    "title": "CSC 453",
+    "section": "Kernel hardware abstractions",
+    "text": "Kernel hardware abstractions\nThis is where hardware becomes an abstraction.\n\nDetects hardware\nLoads drivers\nTurns devices into files:\n\n/dev/sda\n/dev/tty\n\nCreates kernel threads"
+  },
+  {
+    "objectID": "day2.html#userspace-handoff",
+    "href": "day2.html#userspace-handoff",
+    "title": "CSC 453",
+    "section": "Userspace handoff",
+    "text": "Userspace handoff\n\nMounts the root filesystem\nChooses one program to run\nExecutes it with execve()\nexecve(\"/sbin/init\", ...);"
+  },
+  {
+    "objectID": "day2.html#init-pid-1",
+    "href": "day2.html#init-pid-1",
+    "title": "CSC 453",
+    "section": "Init (PID 1)",
+    "text": "Init (PID 1)\n\nFirst userspace process\nAlways PID 1\nParent of all other processes\n\n\nIf PID 1 exits?\n\nThe kernel panics or shuts down"
+  },
+  {
+    "objectID": "day2.html#section-2",
+    "href": "day2.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day2.html#questions-to-consider-3",
+    "href": "day2.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the different kernel paradigms?\nWhy would you choose one over the other?"
+  },
+  {
+    "objectID": "day2.html#paradigms",
+    "href": "day2.html#paradigms",
+    "title": "CSC 453",
+    "section": "Paradigms",
+    "text": "Paradigms\n\nThe OS offers a number of services. What should go in the kernel?\n\nIPC\nVFS\nFile system\nScheduler\nVirtual Memory\nDevice drivers"
+  },
+  {
+    "objectID": "day2.html#monolithic-kernels",
+    "href": "day2.html#monolithic-kernels",
+    "title": "CSC 453",
+    "section": "Monolithic kernels",
+    "text": "Monolithic kernels\n\nOldest, very common design (Linux, Windows 9x, BSDs)\nSingle piece of code in memory\nLimited information hiding\n\nOne part of the kernel can directly access data and functions of other parts"
+  },
+  {
+    "objectID": "day2.html#monolithic-kernels-contd",
+    "href": "day2.html#monolithic-kernels-contd",
+    "title": "CSC 453",
+    "section": "Monolithic kernels (cont’d)",
+    "text": "Monolithic kernels (cont’d)\n\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
+  },
+  {
+    "objectID": "day2.html#layered-kernels",
+    "href": "day2.html#layered-kernels",
+    "title": "CSC 453",
+    "section": "Layered kernels",
+    "text": "Layered kernels\n\nDijkstra created the THE OS in the 60s, introducing the concept Each inner layer is more privileged; required a trap to move down layers\nHardware-enforcement possible\nIntel announced in May 2024 that the new architectures will only have rings 0 and 3"
+  },
+  {
+    "objectID": "day2.html#microkernels",
+    "href": "day2.html#microkernels",
+    "title": "CSC 453",
+    "section": "Microkernels",
+    "text": "Microkernels\n\n\n\nPopular research area long ago, didn’t win (although people remain interested in the principles)\nAll non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management\nA collection of OS services running in user space\nDownsides?\n\nHeavy communication costs through message passing (marshaled through the kernel)"
+  },
+  {
+    "objectID": "day2.html#monolithic-vs-microkernel",
+    "href": "day2.html#monolithic-vs-microkernel",
+    "title": "CSC 453",
+    "section": "Monolithic vs Microkernel",
+    "text": "Monolithic vs Microkernel"
+  },
+  {
+    "objectID": "day2.html#hybrid-kernels",
+    "href": "day2.html#hybrid-kernels",
+    "title": "CSC 453",
+    "section": "Hybrid kernels",
+    "text": "Hybrid kernels\n\nCombine a monolithic core with microkernel ideas\nSmall kernel handles critical services (scheduling, IPC, low-level memory)\nOther services (file systems, drivers) can run in kernel or user space\nExamples: macOS (XNU), Windows NT\n\nXNU: Mach microkernel + BSD monolithic layer\nWindows NT: microkernel-inspired, but most services run in kernel mode for performance\n\nPragmatic compromise: microkernel isolation where it matters, monolithic speed where it doesn’t"
+  },
+  {
+    "objectID": "day2.html#section-3",
+    "href": "day2.html#section-3",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"

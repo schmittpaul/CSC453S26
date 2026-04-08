@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://schmittpaul.github.io/CSC453S26/day2.html</loc>
-    <lastmod>2026-04-08T19:37:02.240Z</lastmod>
-  </url>
-  <url>
     <loc>https://schmittpaul.github.io/CSC453S26/day1.html</loc>
-    <lastmod>2026-04-08T19:37:02.240Z</lastmod>
+    <lastmod>2026-04-08T19:37:35.677Z</lastmod>
   </url>
   <url>
     <loc>https://schmittpaul.github.io/CSC453S26/day3.html</loc>
-    <lastmod>2026-04-08T19:37:02.240Z</lastmod>
+    <lastmod>2026-04-08T19:37:35.677Z</lastmod>
+  </url>
+  <url>
+    <loc>https://schmittpaul.github.io/CSC453S26/day2.html</loc>
+    <lastmod>2026-04-08T19:37:35.677Z</lastmod>
   </url>
   <url>
     <loc>https://schmittpaul.github.io/CSC453S26/slosh.html</loc>
-    <lastmod>2026-04-08T19:37:02.289Z</lastmod>
+    <lastmod>2026-04-08T19:37:35.728Z</lastmod>
   </url>
 </urlset>
