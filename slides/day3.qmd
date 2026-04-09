@@ -78,7 +78,7 @@ format:
 ## System calls (cont'd)
 :::{.incremental}
 - We call into the library wrapper (e.g., `glibc`) which places arguments into registers
-- Each system call has a special number, placed into a register
+- Each system call has a special number that identifies it to the kernel
 - Executes a TRAP instruction (switch to kernel mode)
 - A logical separation of memory space
 - Kernel's system call handler is invoked, once done (but may block) may be returned to the process
