@@ -329,6 +329,300 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day4.html#admin",
+    "href": "day4.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider",
+    "href": "day4.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
+  },
+  {
+    "objectID": "day4.html#unix-process-apis",
+    "href": "day4.html#unix-process-apis",
+    "title": "CSC 453",
+    "section": "UNIX process APIs",
+    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
+  },
+  {
+    "objectID": "day4.html#what-happens-during-a-fork",
+    "href": "day4.html#what-happens-during-a-fork",
+    "title": "CSC 453",
+    "section": "What happens during a fork()?",
+    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
+  },
+  {
+    "objectID": "day4.html#new-fork-design",
+    "href": "day4.html#new-fork-design",
+    "title": "CSC 453",
+    "section": "New fork() design",
+    "text": "New fork() design\nYou’re designing an OS. Instead of fork() + exec(), you provide a single spawn(program) call that creates a new process running program directly. What shell features become harder or impossible to implement?\n\nThe key insight is that fork() gives the child a window of time — between fork() and exec() — where it’s a copy of the parent and can reconfigure itself before becoming the new program. spawn() skips that window entirely.\nThings that break or become much harder:\n\nI/O redirection (ls &gt; out.txt): the shell currently forks, then the child closes stdout and opens the file before calling exec(). With spawn(), there’s no moment to do this — you’d have to pass the desired file descriptors as arguments to spawn(), making the interface much more complex.\nPipes (ls | grep foo): the shell forks twice, wires the child processes together with a pipe, then execs. Same problem — no window to set up the pipe ends before execution starts.\nEnvironment manipulation (VAR=value command): the child can modify its own environment between fork() and exec() without affecting the parent. With spawn(), the caller would need to pass the full desired environment explicitly.\nulimit, chdir, nice before exec: same story — any per-process setup that should apply only to the child has to happen in that fork-exec window.\n\nThe broader point: fork() + exec() is a separation of “create a copy of me” from “become a different program,” and that gap is where all the interesting shell plumbing lives."
+  },
+  {
+    "objectID": "day4.html#process-creation",
+    "href": "day4.html#process-creation",
+    "title": "CSC 453",
+    "section": "Process creation",
+    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
+  },
+  {
+    "objectID": "day4.html#process-destruction",
+    "href": "day4.html#process-destruction",
+    "title": "CSC 453",
+    "section": "Process destruction",
+    "text": "Process destruction"
+  },
+  {
+    "objectID": "day4.html#process-destruction-contd",
+    "href": "day4.html#process-destruction-contd",
+    "title": "CSC 453",
+    "section": "Process destruction (cont’d)",
+    "text": "Process destruction (cont’d)\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
+  },
+  {
+    "objectID": "day4.html#zombies-and-orphans",
+    "href": "day4.html#zombies-and-orphans",
+    "title": "CSC 453",
+    "section": "Zombies and orphans",
+    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\n\n\n\n\n\n\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
+  },
+  {
+    "objectID": "day4.html#section",
+    "href": "day4.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-1",
+    "href": "day4.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
+  },
+  {
+    "objectID": "day4.html#isolation-without-full-virtualization",
+    "href": "day4.html#isolation-without-full-virtualization",
+    "title": "CSC 453",
+    "section": "Isolation without full virtualization",
+    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
+  },
+  {
+    "objectID": "day4.html#namespaces-logical-isolation-visibility",
+    "href": "day4.html#namespaces-logical-isolation-visibility",
+    "title": "CSC 453",
+    "section": "Namespaces: logical isolation (visibility)",
+    "text": "Namespaces: logical isolation (visibility)\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
+  },
+  {
+    "objectID": "day4.html#namespaces-example",
+    "href": "day4.html#namespaces-example",
+    "title": "CSC 453",
+    "section": "Namespaces example",
+    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
+  },
+  {
+    "objectID": "day4.html#seeing-namespaces-in-action",
+    "href": "day4.html#seeing-namespaces-in-action",
+    "title": "CSC 453",
+    "section": "Seeing namespaces in action",
+    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
+  },
+  {
+    "objectID": "day4.html#cgroups-resource-limits",
+    "href": "day4.html#cgroups-resource-limits",
+    "title": "CSC 453",
+    "section": "Cgroups: resource limits",
+    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
+  },
+  {
+    "objectID": "day4.html#seeing-cgroups-in-action",
+    "href": "day4.html#seeing-cgroups-in-action",
+    "title": "CSC 453",
+    "section": "Seeing cgroups in action",
+    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
+  },
+  {
+    "objectID": "day4.html#cgroups-vs.-namespaces",
+    "href": "day4.html#cgroups-vs.-namespaces",
+    "title": "CSC 453",
+    "section": "Cgroups vs. namespaces",
+    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
+  },
+  {
+    "objectID": "day4.html#containers-as-a-building-block",
+    "href": "day4.html#containers-as-a-building-block",
+    "title": "CSC 453",
+    "section": "Containers as a building block",
+    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) allow for policy: that can be orchestrated by combining namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
+  },
+  {
+    "objectID": "day4.html#section-1",
+    "href": "day4.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-2",
+    "href": "day4.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
+  },
+  {
+    "objectID": "day4.html#processes-give-us-a-protection-boundary",
+    "href": "day4.html#processes-give-us-a-protection-boundary",
+    "title": "CSC 453",
+    "section": "Processes give us a protection boundary",
+    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
+  },
+  {
+    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "title": "CSC 453",
+    "section": "Why do we need IPC? What are the benefits?",
+    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
+  },
+  {
+    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
+    "href": "day4.html#what-are-the-disadvantages-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the disadvantages of IPC?",
+    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
+  },
+  {
+    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the two main categories of IPC?",
+    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
+  },
+  {
+    "objectID": "day4.html#message-passing",
+    "href": "day4.html#message-passing",
+    "title": "CSC 453",
+    "section": "Message passing",
+    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-message-passing",
+    "href": "day4.html#pros-and-cons-of-message-passing",
+    "title": "CSC 453",
+    "section": "Pros and cons of message passing?",
+    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
+  },
+  {
+    "objectID": "day4.html#shared-memory",
+    "href": "day4.html#shared-memory",
+    "title": "CSC 453",
+    "section": "Shared memory",
+    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-shared-memory",
+    "href": "day4.html#pros-and-cons-of-shared-memory",
+    "title": "CSC 453",
+    "section": "Pros and cons of shared memory?",
+    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
+  },
+  {
+    "objectID": "day4.html#section-2",
+    "href": "day4.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-3",
+    "href": "day4.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
+  },
+  {
+    "objectID": "day4.html#pipes-anonymous-pipes",
+    "href": "day4.html#pipes-anonymous-pipes",
+    "title": "CSC 453",
+    "section": "Pipes (anonymous pipes)",
+    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
+  },
+  {
+    "objectID": "day4.html#pipes-contd",
+    "href": "day4.html#pipes-contd",
+    "title": "CSC 453",
+    "section": "Pipes (cont’d)",
+    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
+  },
+  {
+    "objectID": "day4.html#pipe-bugs",
+    "href": "day4.html#pipe-bugs",
+    "title": "CSC 453",
+    "section": "Pipe bugs",
+    "text": "Pipe bugs\nint pipefd[2];\npipe (pipefd);\n\nif (fork () == 0)\n  exit (0);\n\nchar buffer[10];\nread (pipefd[0], buffer, sizeof (buffer));\n\nWhat will happen here?\n\nParent will block until an EOF is written into the pipe. Since the child is the only other process that could write to the pipe and the child exits without writing anything, and the parent has not closed its write end, the parent will block indefinitely."
+  },
+  {
+    "objectID": "day4.html#named-pipes-also-known-as-fifos",
+    "href": "day4.html#named-pipes-also-known-as-fifos",
+    "title": "CSC 453",
+    "section": "Named pipes (also known as FIFOs)",
+    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes don’t require a parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer\nCan be used for unrelated processes to communicate"
+  },
+  {
+    "objectID": "day4.html#named-pipes-contd",
+    "href": "day4.html#named-pipes-contd",
+    "title": "CSC 453",
+    "section": "Named pipes (cont’d)",
+    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are not regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNot wise to use bidirectionally, why?"
+  },
+  {
+    "objectID": "day4.html#shared-memory-with-mmap",
+    "href": "day4.html#shared-memory-with-mmap",
+    "title": "CSC 453",
+    "section": "Shared memory with mmap",
+    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nData is accessed directly from the page cache without an extra copy into a user buffer\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
+  },
+  {
+    "objectID": "day4.html#memory-mapped-files-posix-and-system-v",
+    "href": "day4.html#memory-mapped-files-posix-and-system-v",
+    "title": "CSC 453",
+    "section": "Memory mapped files: POSIX and System V",
+    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
+  },
+  {
+    "objectID": "day4.html#posix-vs.-system-v",
+    "href": "day4.html#posix-vs.-system-v",
+    "title": "CSC 453",
+    "section": "POSIX vs. System V",
+    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
+  },
+  {
+    "objectID": "day4.html#message-passing-vs.-shared-memory",
+    "href": "day4.html#message-passing-vs.-shared-memory",
+    "title": "CSC 453",
+    "section": "Message passing vs. shared memory",
+    "text": "Message passing vs. shared memory\n\n\nA camera captures frames at 30fps and a separate process runs AI inference on each frame. Which IPC mechanism would you use? What happens if inference is slower than capture?\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”\n\n\nShared memory is the right answer here — here’s why:\n\nEach frame is large (e.g., 1080p = ~6MB uncompressed). Copying that through the kernel on every frame via message passing adds up fast: at 30fps that’s 180MB/s of unnecessary kernel copies.\nWith shared memory, the camera process writes the frame into a shared buffer and signals the inference process — no copy needed.\n\nWhat happens when inference is slower than capture: - With a pipe/message queue: frames queue up. The buffer fills, writes block, and eventually the camera process stalls — you drop frames at the source. - With shared memory + a ring buffer: the writer can overwrite old frames. You still drop frames, but the camera keeps running and the inference process always gets the most recent frame — often the right tradeoff for real-time systems (stale data is worse than no data).\nFollow-up questions:\n\nWho synchronizes access to the shared buffer? (Needs a mutex or semaphore — the OS doesn’t help here.)\nWhat if you need the inference results sent back? (Probably message passing for the small result, shared memory for the frame data.)\nWhat changes if the camera and inference run on different machines? (Shared memory is off the table; forced into message passing over a network.)"
+  },
+  {
+    "objectID": "day4.html#demo",
+    "href": "day4.html#demo",
+    "title": "CSC 453",
+    "section": "Demo",
+    "text": "Demo"
+  },
+  {
+    "objectID": "day4.html#section-3",
+    "href": "day4.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day2.html#admin",
     "href": "day2.html#admin",
     "title": "CSC 453",
