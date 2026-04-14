@@ -336,6 +336,13 @@
     "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM\nQuiz 2 question on fork bombs…"
   },
   {
+    "objectID": "day4.html#scheduling-basics",
+    "href": "day4.html#scheduling-basics",
+    "title": "CSC 453",
+    "section": "Scheduling basics",
+    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes"
+  },
+  {
     "objectID": "day4.html#questions-to-consider",
     "href": "day4.html#questions-to-consider",
     "title": "CSC 453",

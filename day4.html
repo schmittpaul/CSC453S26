@@ -1086,6 +1086,26 @@ margin-right: 0; }
 <li>Quiz 2 question on fork bombs…</li>
 </ul>
 </section>
+<section id="scheduling-basics" class="slide level2">
+<h2>Scheduling basics</h2>
+<ul>
+<li class="fragment">Scheduler usually makes the transition decisions; hides the details from the process/user</li>
+<li class="fragment">Processes often characterized as one of two types by what state they spend most of their time in
+<ul>
+<li class="fragment"><span class="alert">I/O bound</span>: work is dependent on I/O; e.g., browser, db, media streaming</li>
+<li class="fragment"><span class="alert">CPU bound</span>: work is dependent on CPU; e.g., scientific apps, cryptography</li>
+<li class="fragment">Why does this matter?
+<ul>
+<li class="fragment">Understanding which your process is allows for optimization
+<ul>
+<li class="fragment">CPU-bound? Faster CPU, parallelize.</li>
+<li class="fragment">I/O? Faster I/O devices, use async</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li class="fragment">Scheduler must balance CPU- &amp; I/O-bound processes</li>
+</ul>
+</section>
 <section>
 <section id="process-management" class="title-slide slide level1 center" data-background-color="#40666e">
 <h1>Process management</h1>
