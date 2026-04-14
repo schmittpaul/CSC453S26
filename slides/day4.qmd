@@ -15,6 +15,19 @@ format:
 - Quiz 2 question on fork bombs...
 :::
 
+## Scheduling basics
+:::{.incremental}
+- Scheduler usually makes the transition decisions; hides the details from the process/user
+- Processes often characterized as one of two types by what state they spend most of their time in
+  - [I/O bound]{.alert}: work is dependent on I/O; e.g., browser, db, media streaming
+  - [CPU bound]{.alert}: work is dependent on CPU; e.g., scientific apps, cryptography
+  - Why does this matter?
+    - Understanding which your process is allows for optimization
+      - CPU-bound? Faster CPU, parallelize.
+      - I/O? Faster I/O devices, use async
+- Scheduler must balance CPU- & I/O-bound processes
+:::
+
 # Process management {background-color="#40666e"}
 
 ## Questions to consider
