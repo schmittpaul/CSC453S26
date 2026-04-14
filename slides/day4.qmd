@@ -12,6 +12,7 @@ format:
 :::{.nonincremental}
 - Assignment 1 due Wednesday
 - Lab 2 due Thursday, 11:59 PM
+- Quiz 2 question on fork bombs...
 :::
 
 # Process management {background-color="#40666e"}
