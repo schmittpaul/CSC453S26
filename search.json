@@ -728,55 +728,6 @@
     "text": "SJF: how can we predict the future?\n\nWe can’t trust a process to tell the truth\nWe can only estimate, how?\n\nThe past (with the hope that the process will act like it has before)\n\nExponential weighted moving average: \\[\nEWMA_t = \\alpha \\times x_t + (1 - \\alpha) \\times EWMA_{t-1}\n\\]\n\\(\\alpha = 0\\)? New measurement does not get taken into account\n\\(\\alpha = 1\\)? History does not get taken into account\n\\(\\alpha\\) is often set to .5"
   },
   {
-    "objectID": "day5.html#sjf-example",
-    "href": "day5.html#sjf-example",
-    "title": "CSC 453",
-    "section": "SJF example",
-    "text": "SJF example\n\n\n\nGantt: \nAverage waiting time: \\((3 + 16 + 9 + 0)/4 = 7\\)\nVersus FCFS: \\((0 + 6 + 14 + 21)/4 = 10.25\\)\n\n\n\n\n    Process Burst Time\n      P1          6\n      P2          8\n      P3          7\n      P4          3"
-  },
-  {
-    "objectID": "day5.html#do-you-see-any-problems-with-sjf",
-    "href": "day5.html#do-you-see-any-problems-with-sjf",
-    "title": "CSC 453",
-    "section": "Do you see any problems with SJF?",
-    "text": "Do you see any problems with SJF?\n\nWhat do we do if a short process arrives after SJF has started a long running process? \nWhat should we do?\n\nPreempt"
-  },
-  {
-    "objectID": "day5.html#shortest-remaining-time-first-srtf",
-    "href": "day5.html#shortest-remaining-time-first-srtf",
-    "title": "CSC 453",
-    "section": "Shortest remaining time first (SRTF)",
-    "text": "Shortest remaining time first (SRTF)\n\n\n\nPreemptive version of SJF\nWhenever a new process arrives in the ready queue, the decision on which process to schedule next is redone using the SJF algorithm\nQuestion: is SRTF more optimal than SJF for any metrics?\n\nYes, average waiting time is minimized"
-  },
-  {
-    "objectID": "day5.html#srtf-example",
-    "href": "day5.html#srtf-example",
-    "title": "CSC 453",
-    "section": "SRTF example",
-    "text": "SRTF example\n    Process      Arrival Time   Burst Time\n     P1               0             8\n     P2               1             4\n     P3               2             9\n     P4               3             5\n\nAverage waiting time = \\([(0+9)+(0)+(15)+(2)]/4 = 26/4 = 6.5\\)"
-  },
-  {
-    "objectID": "day5.html#do-you-see-any-problems-with-srtf",
-    "href": "day5.html#do-you-see-any-problems-with-srtf",
-    "title": "CSC 453",
-    "section": "Do you see any problems with SRTF?",
-    "text": "Do you see any problems with SRTF?\n\nComputers aren’t static. What if short jobs continuously arrive?\n\nLarge jobs can starve\nUrban legend about IBM 7074 at MIT: when shut down in 1973, low-priority processes were found which had been submitted in 1967 and had not yet been run…"
-  },
-  {
-    "objectID": "day5.html#priority-scheduling",
-    "href": "day5.html#priority-scheduling",
-    "title": "CSC 453",
-    "section": "Priority scheduling",
-    "text": "Priority scheduling\n\n“Shortest” algos are examples of priority scheduling\nI.e., scheduling is based on some metric of priority\nDownsides\n\nIf not implemented carefully, indefinite blocking / starvation\nHow do we prevent starvation?\n\nAging: gradually increase the priority of processes that wait in the system for a long time"
-  },
-  {
-    "objectID": "day5.html#section-2",
-    "href": "day5.html#section-2",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
     "objectID": "day2.html#admin",
     "href": "day2.html#admin",
     "title": "CSC 453",
