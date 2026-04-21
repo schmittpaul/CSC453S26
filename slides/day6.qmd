@@ -212,6 +212,14 @@ Comments? Thoughts?
 
 # Interactive scheduling algorithms {background-color="#40666e"}
 
+## Questions to consider
+:::{.nonincremental}
+- What are the key differences between batch and interactive scheduling algorithms?
+- How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?
+- Why might a system benefit from using multiple scheduling queues rather than a single algorithm?
+:::
+
+
 ## Why batch algorithms aren't enough
 :::{.incremental}
 - Batch algorithms optimize for throughput, turnaround, and waiting time
@@ -222,12 +230,7 @@ Comments? Thoughts?
 - Batch algorithms ignore this entirely
 :::
 
-## Questions to consider
-:::{.nonincremental}
-- What are the key differences between batch and interactive scheduling algorithms?
-- How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?
-- Why might a system benefit from using multiple scheduling queues rather than a single algorithm?
-:::
+
 
 ## Batch vs. interactive scheduling
 :::: {.columns}
@@ -340,6 +343,13 @@ Comments? Thoughts?
 :::
 
 # Multi-level scheduling algorithms {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What problem does MLFQ solve that MLQ does not, and what mechanism enables it?
+- How can a process game MLFQ's original rules, and what rule change prevents it?
+- How does MLFQ handle starvation of long-running processes?
+:::
 
 ## Interactive algorithms: Multi-Level Queue (MLQ)
 :::{.incremental}
