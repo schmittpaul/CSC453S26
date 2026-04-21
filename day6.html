@@ -1239,6 +1239,14 @@ EWMA_t = \alpha \times x_t + (1 - \alpha) \times EWMA_{t-1}
 <h1>Interactive scheduling algorithms</h1>
 
 </section>
+<section id="questions-to-consider-1" class="slide level2">
+<h2>Questions to consider</h2>
+<ul>
+<li>What are the key differences between batch and interactive scheduling algorithms?</li>
+<li>How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?</li>
+<li>Why might a system benefit from using multiple scheduling queues rather than a single algorithm?</li>
+</ul>
+</section>
 <section id="why-batch-algorithms-arent-enough" class="slide level2">
 <h2>Why batch algorithms aren’t enough</h2>
 <ul>
@@ -1250,14 +1258,6 @@ EWMA_t = \alpha \times x_t + (1 - \alpha) \times EWMA_{t-1}
 </ul></li>
 <li class="fragment">Metric to focus on: <span class="alert">response time</span>: time from request submission to first response</li>
 <li class="fragment">Batch algorithms ignore this entirely</li>
-</ul>
-</section>
-<section id="questions-to-consider-1" class="slide level2">
-<h2>Questions to consider</h2>
-<ul>
-<li>What are the key differences between batch and interactive scheduling algorithms?</li>
-<li>How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?</li>
-<li>Why might a system benefit from using multiple scheduling queues rather than a single algorithm?</li>
 </ul>
 </section>
 <section id="batch-vs.-interactive-scheduling" class="slide level2">
@@ -1387,6 +1387,14 @@ display:block!important;
 <section id="multi-level-scheduling-algorithms" class="title-slide slide level1 center" data-background-color="#40666e">
 <h1>Multi-level scheduling algorithms</h1>
 
+</section>
+<section id="questions-to-consider-2" class="slide level2">
+<h2>Questions to consider</h2>
+<ul>
+<li>What problem does MLFQ solve that MLQ does not, and what mechanism enables it?</li>
+<li>How can a process game MLFQ’s original rules, and what rule change prevents it?</li>
+<li>How does MLFQ handle starvation of long-running processes?</li>
+</ul>
 </section>
 <section id="interactive-algorithms-multi-level-queue-mlq" class="slide level2">
 <h2>Interactive algorithms: Multi-Level Queue (MLQ)</h2>

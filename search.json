@@ -238,18 +238,18 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
-    "objectID": "day6.html#why-batch-algorithms-arent-enough",
-    "href": "day6.html#why-batch-algorithms-arent-enough",
-    "title": "CSC 453",
-    "section": "Why batch algorithms aren’t enough",
-    "text": "Why batch algorithms aren’t enough\n\nBatch algorithms optimize for throughput, turnaround, and waiting time\nBut what if a user is at the keyboard?\n\nYou click a button (e.g., while a long batch job is running) you wait 3 seconds for any response\nA web server needs to respond to thousands of short requests, not just finish jobs quickly\n\nMetric to focus on: response time: time from request submission to first response\nBatch algorithms ignore this entirely"
-  },
-  {
     "objectID": "day6.html#questions-to-consider-1",
     "href": "day6.html#questions-to-consider-1",
     "title": "CSC 453",
     "section": "Questions to consider",
     "text": "Questions to consider\n\nWhat are the key differences between batch and interactive scheduling algorithms?\nHow does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?\nWhy might a system benefit from using multiple scheduling queues rather than a single algorithm?"
+  },
+  {
+    "objectID": "day6.html#why-batch-algorithms-arent-enough",
+    "href": "day6.html#why-batch-algorithms-arent-enough",
+    "title": "CSC 453",
+    "section": "Why batch algorithms aren’t enough",
+    "text": "Why batch algorithms aren’t enough\n\nBatch algorithms optimize for throughput, turnaround, and waiting time\nBut what if a user is at the keyboard?\n\nYou click a button (e.g., while a long batch job is running) you wait 3 seconds for any response\nA web server needs to respond to thousands of short requests, not just finish jobs quickly\n\nMetric to focus on: response time: time from request submission to first response\nBatch algorithms ignore this entirely"
   },
   {
     "objectID": "day6.html#batch-vs.-interactive-scheduling",
@@ -299,6 +299,13 @@
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day6.html#questions-to-consider-2",
+    "href": "day6.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat problem does MLFQ solve that MLQ does not, and what mechanism enables it?\nHow can a process game MLFQ’s original rules, and what rule change prevents it?\nHow does MLFQ handle starvation of long-running processes?"
   },
   {
     "objectID": "day6.html#interactive-algorithms-multi-level-queue-mlq",
