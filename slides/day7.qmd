@@ -1,0 +1,458 @@
+---
+title: CSC 453
+subtitle: Spring 2026 - Day 7
+format:
+  clean-revealjs:
+    self-contained: true
+    incremental: false
+    margin: 0.15
+---
+
+## Admin
+:::{.nonincremental}
+- Quiz due Monday at 11:59pm
+- Exam 1 next Tuesday
+:::
+
+# Threads {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the differences between processes and threads?
+- When are threads beneficial?
+- How are threads limited by Amdahl's Law?
+:::
+
+## Motivation: context switching is expensive
+:::{.incremental}
+- consider the modern word processor, which concurrently:
+  - accepts user input,
+  - performs auto-correct/spell checking;
+  - auto-detects formatting
+  - auto-save (nothing could be entered until save was complete);
+- All impossible (or at least very inconvenient) without threads.
+:::
+
+## Processes vs threads
+:::{.incremental}
+- Potentially confusing due to overlapping terminology: we can describe both a [process]{.alert} and a [thread]{.alert} as running
+- Terminology can be helpful for remembering the distinction:
+  - A computing [process]{.alert} requires multiple resources: the CPU, memory, files, etc.
+  - A [thread]{.alert} of execution abstracts CPU state
+:::
+
+## Processes vs threads (cont'd)
+:::{.incremental}
+- Processes *contain* threads; threads *belong* to a process
+  - Only one exception: the kernel may have threads of execution not associated with any user process
+- Threads each have their own stack and registers
+  - Why?
+- A process is considered to be running when one or more of its threads are running
+- Different operating systems use different terminology, but share common ideas
+:::
+
+## Intra-process communication
+:::{.incremental}
+- Communication between multiple threads in a process is usually accomplished using [shared memory]{.alert} (since they naturally share it)
+  - Potential issues?
+    - Synchronization (we'll come back to this)
+- Threads within a process also share open file handles and both static and dynamically-allocated global variables.
+- Thread stacks and thus thread local variables are typically private.
+:::
+
+## Why do we use threads? Pros
+:::{.incremental}
+- To support multiple activities within a single process
+- [Responsiveness]{.alert}: a process may continue to run, even if part of it is blocked (depends on thread implementation)
+- [Resource sharing]{.alert}: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process's resources (e.g. files)
+- [Economy]{.alert}: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load
+- [Hardware support]{.alert}: modern CPUs support multithreading, where threads can run in parallel
+:::
+
+## Thread cons
+:::{.incremental}
+- This is hard. Burdens programmer needs to solve:
+  - Dividing activities
+  - Balance
+  - Data splitting
+  - Data dependency
+  - Testing and debugging
+- Share the same address space and global variable: [loss of isolation]{.alert}. A runaway thread can wipe out other threads
+- No built-in mechanism for pre-emption, so threads should be well-behaved (unlike greedy processes)
+- $n$ threads see $1/n$ of a single CPU; CPU-bound processes make thread moot, or detrimental
+:::
+
+## What makes more sense, threads or process?
+:::{.nonincremental}
+- Web server
+- GUI apps
+- Multimedia apps
+- DB servers
+- OS services
+:::
+
+## What makes more sense, threads or process?
+:::{.nonincremental}
+- Web server - thread (through there are many hybrid implementations)
+- GUI apps - thread
+- Multimedia apps - thread
+- DB servers - both: postgres uses processes, MySQL is multithreaded
+- OS services - process
+:::
+
+## Side note: `fork()` and threading
+:::{.incremental}
+- What happens to threads when you `fork()`?
+- Should a child inherit the threads of their parent?
+- What happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?
+- In reality (Linux): a child process, only the calling thread is replicated.
+:::
+
+## A word of caution: Amdahl's Law
+:::{.incremental}
+- Threads are awesome, let's parallelize everything, right?
+- Amdahl's Law identifies performance gains from adding additional cores to an application that has both serial and parallel components
+  - $S$ is serial portion
+  - $N$ processing cores
+  $$speedup \le \frac{1}{S + \frac{(1-S)}{N}}$$
+
+- That is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of $1.6 \times$
+- As $N$ approaches infinity, speedup approaches $1 / S$
+- **Serial portion has a disproportionate effect on performance**
+:::
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+
+# Thread models {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do user threads and kernel threads relate?
+- What are the different kernel thread models and how do they compare?
+  - When should you use each?
+:::
+
+## First things first
+:::{.incremental}
+- A kernel thread is the unit of execution that the OS can run on a CPU core
+- A process can only make progress if at least one of its kernel threads is scheduled on a core
+- CPUs run kernel threads, not processes
+- The OS scheduler only schedules kernel threads, not user threads
+:::
+
+## User space threads
+:::{.incremental}
+- Totally unknown to the OS
+- Thread library manages thread table and scheduling
+- Context switch is a function call within the process
+- User-level threads must "borrow" a kernel thread to run
+- What happens when a pure user space thread makes an I/O-bound system call?
+  - [All threads will block]{.alert}, because the process is blocked
+  - Sometimes a thread blocking a process is unavoidable: page fault: more later
+:::
+
+## Kernel threads
+:::{.incremental}
+- Thread libraries can also have kernel support (this is the common case today)
+- There is no user space runtime environment or thread table: all is managed within the kernel
+- Support for multiple cores
+- All thread interfaces are system calls handled by the kernel
+:::
+## Kernel threads (cont'd)
+:::{.incremental}
+- Instead of blocking on a system call, the kernel now has the intelligence to schedule another thread
+- Creating and destroying threads comes at a higher cost (a kernel TRAP)
+  - What should we do?
+    - [Thread pools]{.alert}: a collection of pre-allocated threads, assigned as needed
+:::
+
+## Thread design models: many-to-one (M:1)
+:::{.incremental}
+- Kernel threads must support user level threads. There are multiple ways to pull this off
+- [Many-to-one]{.alert}
+  - A single kernel level thread supports many user level threads
+  - Switching between threads is fast (done in user level)
+  - No parallelism (kernel thread is supporting only a single user thread at a time)
+  - If any user thread makes an I/O blocking call, all user threads in that process are blocked
+- Where does this make sense?
+  - If you need complete control over scheduling
+  - If you have no kernel or minimal RTOS kernel
+:::
+
+## Thread models: many-to-many (M:N)
+:::{.incremental}
+- Set of user threads supported by a number of kernel threads
+- User thread isn't bound to a particular kernel thread
+  - If kernel thread has to block and was supporting 3 user threads, the others can migrate
+- Allows parallelism
+- Sounds like the best of all worlds, right?
+  - Can be hard to implement without decent language support
+  - Now you have two schedulers to deal with (user space and kernel)
+  - goroutines are a notable example of M:N in reality (though they are achieved through the Go runtime and not the kernel itself)
+- When to use?
+  - When you need maximum concurrency (thousands to millions of threads) and have custom scheduling needs
+:::
+
+## Thread models: one-to-one (1:1)
+:::{.incremental}
+- Number of kernel-level threads is equal to the number of user-level threads (dominant model today)
+- Can operate in parallel
+- If one blocks, others can continue
+- Downsides?
+  - Lose the advantage of fast switching between user threads
+  - Any new user thread requires kernel thread creation: *expensive*
+  - Programmer loses scheduling control: kernel makes decisions
+- Very popular model: Linux & Windows
+  - Easy to implement
+  - Most machines have multiple cores so we can support a lot of kernel threads
+:::
+
+## Which models make sense?
+:::{.incremental}
+- Distributed scientific computing
+  - 1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way
+- Embedded system
+  - M:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core
+- Prometheus (distributed monitoring system)
+  - M:N - scrapes metrics from thousands of endpoints concurrently using goroutines; the Go runtime multiplexes these onto a small pool of kernel threads, enabling massive scaling without a kernel thread per target
+:::
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Midterm 1 boundary {background-color="#907845"}
+
+# pthreads {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do we actually create and manage threads in C?
+- What happens when two threads touch the same variable?
+- How do threads coordinate without busy-waiting?
+:::
+
+::: {.notes}
+We've spent two sections on the *concepts* of threads - what they are, how the kernel sees them. Now we shift to the practical side: if I hand you a C compiler, how do you actually write a multithreaded program? These three questions are what the rest of this section is built around.
+:::
+
+## POSIX threads (pthreads)
+:::{.incremental}
+- Standard C threading API on Linux/macOS/BSD (`#include <pthread.h>`, link with `-lpthread`)
+- Backed by 1:1 kernel threads on Linux (NPTL)
+- Core primitives:
+  - `pthread_create` / `pthread_join` - spawn and wait
+  - `pthread_mutex_t` - mutual exclusion
+  - `pthread_cond_t` - condition variables
+:::
+
+::: {.notes}
+POSIX threads - pronounced "pee-threads" - is the standard. It's been around since the mid-90s and it's what you get on essentially any Unix-like system. On Linux it's implemented by NPTL, which gives you the 1:1 model we just talked about - every `pthread_create` is a real kernel thread. The API is small: you create/join threads, you lock mutexes, and you wait on condition variables. That's basically it. Three primitives, and everything else is built on top.
+:::
+
+## Creating and joining
+```{.c code-line-numbers="|4-8|11|13-14|15-16"}
+#include <pthread.h>
+#include <stdio.h>
+
+void *worker(void *arg) {
+    int id = *(int *)arg;
+    printf("hello from thread %d\n", id);
+    return NULL;
+}
+
+int main(void) {
+    pthread_t t1, t2;
+    int a = 1, b = 2;
+    pthread_create(&t1, NULL, worker, &a);
+    pthread_create(&t2, NULL, worker, &b);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    return 0;
+}
+```
+
+::: {.notes}
+Walk through with the highlight steps:
+
+1. **worker function** - every pthread entry point has this signature: takes a `void *`, returns a `void *`. That's how you pass arguments in and get results out. We cast to `int *` to recover the argument.
+2. **thread handles and args** - `pthread_t` is an opaque handle - think of it like a PID but for threads. Note we pass *pointers* to `a` and `b`. A common bug: passing `&i` from a loop counter - by the time the thread runs, `i` has moved on.
+3. **create** - this is where a new kernel thread is actually spawned. After this call returns, two threads are running. No guarantee which one runs first, or even whether the parent reaches the next line before the child finishes.
+4. **join** - the parent blocks until each child finishes. Without `join`, `main` could return and the whole process exits while workers are mid-printf. `join` is also how you collect the return value - we're passing NULL because we don't care here.
+:::
+
+## The problem: shared state
+:::{.incremental}
+- Two threads, both running `counter++` one million times
+- `counter++` is *not* atomic - it compiles to load, add, store
+- Threads can interleave between those steps and clobber each other
+- Result: final value is some number less than 2,000,000, and it's different every run
+- This is a [race condition]{.alert}: correctness depends on timing
+:::
+
+::: {.notes}
+This is *the* motivating example for synchronization. Try it at home: spawn two threads, each does `counter++` a million times. You'd expect 2,000,000. You almost never get it.
+
+The key insight is that `counter++` looks atomic in C but isn't at the hardware level. It's three instructions: load from memory into a register, add one, store back. If thread A loads, then thread B loads the same value before A stores, they both add one to the same number - and one increment is lost.
+
+The really nasty part: this bug might only show up once every thousand runs. Race conditions are the worst kind of bug because they're nondeterministic. This is why the rest of our concurrency work matters.
+:::
+
+## Mutexes (preview)
+:::{.incremental}
+- A [mutex]{.alert} (mutual exclusion lock) enforces that only one thread at a time is inside a [critical section]{.alert}
+- `pthread_mutex_lock` blocks until the lock is available, then acquires it
+- `pthread_mutex_unlock` releases it so another waiter can proceed
+- We'll dig into *how* these work (hardware atomics, spinlocks, futexes) in the coming weeks
+:::
+
+::: {.notes}
+A mutex is the simplest answer to the race condition: draw a fence around the shared state and say "only one thread inside at a time." The region inside the fence is called the critical section.
+
+Right now I just want you to have the mental model: `lock` = enter, `unlock` = leave. If another thread is inside, your `lock` call blocks until they leave. We'll spend real time later on *how* this is actually implemented - it turns out to be genuinely hard, and involves CPU instructions like compare-and-swap, and a Linux-specific mechanism called futexes that lets the kernel get involved only when there's contention.
+:::
+
+## Mutex example
+```{.c code-line-numbers="|1-2|6|7|8"}
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+long counter = 0;
+
+void *bump(void *arg) {
+    for (int i = 0; i < 1000000; i++) {
+        pthread_mutex_lock(&lock);
+        counter++;              // critical section
+        pthread_mutex_unlock(&lock);
+    }
+    return NULL;
+}
+```
+:::{.incremental}
+- Now the increment is safe - but threads may spend time waiting
+- Keep critical sections [small]{.alert}: lock, touch shared data, unlock
+:::
+
+::: {.notes}
+Walk through the highlights:
+
+1. **globals** - `PTHREAD_MUTEX_INITIALIZER` is a compile-time initializer for statically allocated mutexes. For dynamic allocation you'd use `pthread_mutex_init`. The mutex has to be shared - if each thread had its own mutex, it would defend nothing.
+2. **lock** - this line is the gate. If another thread is already inside, we block here. The kernel can put us to sleep; we don't spin forever.
+3. **critical section** - this is now atomic with respect to other threads that use the same lock. Note: only threads that also lock `&lock` respect this. A rogue thread doing `counter++` without the lock still breaks everything. Locks are a convention.
+4. **unlock** - critical: don't forget this. If you return or exit early inside the critical section without unlocking, every other thread blocks forever. This is a big source of bugs in C; RAII in C++ and `defer` in Go exist specifically to prevent it.
+
+Tradeoff to flag: we've serialized part of the work. If the critical section is huge, we've basically made the program single-threaded. Lock small regions.
+:::
+
+## Condition variables (preview)
+:::{.incremental}
+- Mutexes answer "who gets in?" - condition variables answer "when should I wake up?"
+- Use case: consumer thread has nothing to do until the producer puts something in the queue
+- Alternative - busy-waiting (`while (queue_empty()) {}`) - burns CPU for nothing
+- A [condition variable]{.alert} lets a thread sleep until another thread signals that a condition may now be true
+:::
+
+::: {.notes}
+Important framing: mutexes and condition variables solve *different* problems, and they work together, not instead of each other.
+
+Mutex: "only one of us at a time." That's about protecting data.
+
+Condition variable: "I have nothing to do right now - wake me up when something changes." That's about coordinating *events*.
+
+The motivating example is a work queue. A consumer thread wants to grab the next item and process it. If the queue is empty, what should it do? Busy-waiting - spinning in a loop checking `queue_empty()` - works but wastes an entire CPU doing nothing useful. Worse, it can actually prevent the producer from running. Condition variables let the consumer sleep efficiently and get woken up exactly when there's work.
+:::
+
+## Condvar mechanics
+:::{.incremental}
+- Always paired with a mutex that protects the shared state being checked
+- `pthread_cond_wait(&cv, &lock)` atomically:
+  - releases `lock`
+  - puts the thread to sleep
+  - re-acquires `lock` when woken
+- `pthread_cond_signal(&cv)` wakes one waiter; `pthread_cond_broadcast` wakes all
+- Always wait in a [`while` loop]{.alert}, not `if` - spurious wakeups happen, and another thread may have consumed the condition first
+:::
+
+::: {.notes}
+The atomic release/sleep/reacquire is the whole trick. If `wait` just released the lock and then went to sleep as two separate steps, a signal could arrive in between and be lost - you'd sleep forever waiting for something that already happened. The API is designed to make that impossible.
+
+The `while` loop vs `if` point is worth emphasizing. Two reasons to re-check the condition after waking:
+
+1. **Spurious wakeups** - POSIX explicitly allows `wait` to return without any signal having been sent. Don't fight this, just code for it.
+2. **Another waiter beat you to it** - if the producer signals and two consumers are waiting, both might wake up, but only one item exists. The first one takes it, the second one must go back to sleep.
+
+Rule of thumb: never write `if (!condition) wait()`. Always `while (!condition) wait()`.
+:::
+
+## Producer/consumer sketch
+```{.c code-line-numbers="|1-3|6|7-8|9-10|16-17|18|19|20"}
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  not_empty = PTHREAD_COND_INITIALIZER;
+queue_t q;
+
+void *consumer(void *_) {
+    pthread_mutex_lock(&m);
+    while (queue_empty(&q))
+        pthread_cond_wait(&not_empty, &m);
+    item_t x = queue_pop(&q);
+    pthread_mutex_unlock(&m);
+    process(x);
+    return NULL;
+}
+
+void *producer(void *_) {
+    item_t x = make_item();
+    pthread_mutex_lock(&m);
+    queue_push(&q, x);
+    pthread_cond_signal(&not_empty);
+    pthread_mutex_unlock(&m);
+    return NULL;
+}
+```
+
+::: {.notes}
+Walk through the highlights:
+
+1. **shared state** - one mutex, one condvar, one queue. The condvar "belongs to" the mutex in the sense that every wait/signal on it happens while holding `m`.
+2. **consumer lock** - before we can even check the queue, we need the lock. We can't safely call `queue_empty` while a producer might be modifying the queue.
+3. **`while` + `cond_wait`** - classic pattern. Check the condition; if not satisfied, wait. When `wait` returns, we hold the lock again and the condition *might* be true - loop back and re-check.
+4. **pop and unlock** - we know the queue isn't empty because we just exited the while loop holding the lock. Pop, then release the lock before doing `process(x)` - no reason to hold the lock during the actual work.
+5. **producer lock and push** - mirror image: lock, mutate the shared queue.
+6. **signal** - notify one waiter. `broadcast` would wake all waiters; use it when the state change might satisfy multiple of them.
+7. **unlock** - note: we signal *then* unlock. Signaling while holding the lock is fine and sometimes clearer; the waiter can't actually proceed until we release anyway.
+
+This pattern - mutex + condvar + while-loop check - is the foundation for essentially all higher-level concurrency primitives: bounded queues, semaphores, barriers, read-write locks. If you internalize this, the rest follows.
+:::
+
+## Takeaways
+:::{.incremental}
+- pthreads gives you a thin, portable interface to 1:1 kernel threads
+- Shared memory is the blessing *and* the curse of threading
+- Mutexes guard data; condition variables coordinate *events*
+- After the exam we'll talk about what's happening underneath these calls, and on the ways concurrent code can still go wrong (deadlock, starvation, priority inversion, ...)
+:::
+
+::: {.notes}
+Main point: you now have enough vocabulary to read and write basic multithreaded C code. What you don't yet have is the full picture of what can go wrong. A few things we'll get to:
+
+- **Deadlock** - thread A holds lock 1 and wants lock 2; thread B holds lock 2 and wants lock 1. Neither can proceed.
+- **Starvation** - a thread keeps getting passed over and never makes progress, even though nothing is technically wrong.
+- **Priority inversion** - a low-priority thread holding a lock blocks a high-priority thread; famously almost killed the Mars Pathfinder mission.
+
+Also: we'll look underneath - how a mutex is actually implemented, what a futex is, what atomic instructions the CPU provides, and why memory models matter. Today's section is the "user" view; the rest of the semester is the "implementer" view.
+:::
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
