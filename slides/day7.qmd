@@ -10,6 +10,7 @@ format:
 
 ## Admin
 :::{.nonincremental}
+- Lab due today at 11:59pm
 - Quiz due Monday at 11:59pm
 - Exam 1 next Tuesday
 :::
