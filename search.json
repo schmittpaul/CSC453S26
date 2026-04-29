@@ -427,6 +427,1063 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day8.html#admin",
+    "href": "day8.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nQuiz due Monday at 11:59pm\nExam 1 results"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider",
+    "href": "day8.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the requirements for a critical section synchronization solution?\nWhy do naive implementations like a simple boolean lock fail, and what must happen atomically instead?\nWhat are the practical limitations of Peterson’s solution, and why don’t they work well on modern architectures?"
+  },
+  {
+    "objectID": "day8.html#problem",
+    "href": "day8.html#problem",
+    "title": "CSC 453",
+    "section": "Problem",
+    "text": "Problem\n\nTwo processes accessing a reservation system, where the number of open seats is tracked by a counter\n\nA: Releasing Seat\nB: Reserving Seat\n\nCounter at 10; Process A counter++ = 11; Process B counter-- = 9;\nWhat could go wrong?\nmov 0x8049a1c, %eax\nadd $0x1, %eax\nmov %eax, 0x8049a1c\n\nmov 0x8049a1c, %eax\nsub $0x1, %eax\nmov %eax, 0x8049a1c"
+  },
+  {
+    "objectID": "day8.html#race-conditions",
+    "href": "day8.html#race-conditions",
+    "title": "CSC 453",
+    "section": "Race conditions",
+    "text": "Race conditions\n\nIf interleaved, whoever goes last wins. Either way, 11 or 9 is an incorrect value. This is a race condition\nVery common in multi-programming environments: allocating disk blocks or memory pages, writing to a file, network buffers, etc.\nHow can we solve race conditions?\n\nMutual Exclusion (one at a time) on Critical Sections (the contention data/code)"
+  },
+  {
+    "objectID": "day8.html#challenges-we-face",
+    "href": "day8.html#challenges-we-face",
+    "title": "CSC 453",
+    "section": "Challenges we face",
+    "text": "Challenges we face\n\nHow large should a critical section be?\nHow long can a process be in a critical section\n\nWhat happens if they crash while within a critical section?\n\nHow do we implement? Who enforces entrance into critical sections?"
+  },
+  {
+    "objectID": "day8.html#beware-naïve-implementations",
+    "href": "day8.html#beware-naïve-implementations",
+    "title": "CSC 453",
+    "section": "Beware naïve implementations",
+    "text": "Beware naïve implementations\n\nWhy not use a simple bool?\nbool lock = FALSE\ndo {\n  while (lock == TRUE);\n  lock = TRUE;\n  //CRITICAL SECTION\n  lock = FALSE;\n}while(TRUE);\nThis implementation requires TWO operations: a read (test) and a write (set) that must be atomic"
+  },
+  {
+    "objectID": "day8.html#critical-section-solution-requirements",
+    "href": "day8.html#critical-section-solution-requirements",
+    "title": "CSC 453",
+    "section": "Critical section solution requirements",
+    "text": "Critical section solution requirements\n\nMutual exclusion: only one process can execute at a time\nProgress: if no process is executing in its critical section and there exist some processes that wish to enter their critical section, then the selection of the process that will enter the critical section next cannot be postponed indefinitely\n\nE.g., A process cannot immediately re-enter the critical section if the other process want to\n\nBounded waiting: there must be a bound on the number of times other processes are allowed to enter their critical sections after a process has requested entry and before that request is granted\n\nNo assumptions on the speed or number of CPUs"
+  },
+  {
+    "objectID": "day8.html#petersons-solution",
+    "href": "day8.html#petersons-solution",
+    "title": "CSC 453",
+    "section": "Peterson’s solution",
+    "text": "Peterson’s solution\n\nTwo processes: \\(P_i\\) and \\(P_j\\)\nTwo shared data items: int turn; bool flag[2];\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nturn indicates whose turn it is: turn == i → \\(P_i\\)’s turn\nif flag[i] == true → \\(P_i\\) is ready for the critical section\n\nTo enter: \\(P_i\\) sets flag[i] = true and turn = j\n\ni.e., \\(P_i\\) demurs to \\(P_j\\); if they are both ready turn will get set to?\n\nWhomever runs last sets the turn to the other process"
+  },
+  {
+    "objectID": "day8.html#petersons-solution-contd",
+    "href": "day8.html#petersons-solution-contd",
+    "title": "CSC 453",
+    "section": "Peterson’s solution (cont’d)",
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nDoes this meet the three solution requirements?\nMutual exclusion: under what conditions can a process be in the critical section?\n\n\\(P_i\\) only enters if flag[j] is false or turn == i\nConversely, if \\(P_i\\) and \\(P_j\\) are in the CS, then flag[i] == flag[j]; this implies both \\(P_i\\) and \\(P_j\\) terminated their whiles at the same time; BUT, in order for this to be true, turn must be both 0 and 1 (Contradiction)"
+  },
+  {
+    "objectID": "day8.html#petersons-solution-contd-1",
+    "href": "day8.html#petersons-solution-contd-1",
+    "title": "CSC 453",
+    "section": "Peterson’s solution (cont’d)",
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nProgress: Is there a condition where \\(P_i\\) can’t enter the CS?\n\nThere is no condition under which \\(P_i\\) cannot (eventually) enter the CS; either the other process will set turn == i or it is already set\n\nBounded Waiting: How long will \\(P_i\\) wait in the best/worst case?\n\n\\(P_i\\) will enter after at most one entry by \\(P_j\\)"
+  },
+  {
+    "objectID": "day8.html#petersons-solution-contd-2",
+    "href": "day8.html#petersons-solution-contd-2",
+    "title": "CSC 453",
+    "section": "Peterson’s solution (cont’d)",
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nDo you see any issues with this solution?\n\nLimitation: Only works for two processes\nModern architectures may also break this solution\n\nProcessors and/or compilers can reorder reads and writes that have no dependencies\nMultithreaded applications could lead to issues"
+  },
+  {
+    "objectID": "day8.html#section",
+    "href": "day8.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider-1",
+    "href": "day8.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do synchronization solutions compare in implementation / function?\nWhy can busy-waiting primitives cause problems like priority inversion, and how do blocking primitives help address this?\nWhen would you choose a counting semaphore versus a binary semaphore or mutex, and what distinguishes them?"
+  },
+  {
+    "objectID": "day8.html#hardware-solutions-atomicity",
+    "href": "day8.html#hardware-solutions-atomicity",
+    "title": "CSC 453",
+    "section": "Hardware solutions: atomicity",
+    "text": "Hardware solutions: atomicity\n\nOne way: use atomic instructions (all-or-none actions)\nBaked into modern hardware\n\ntest_and_set()\ncompare_and_swap()\nThese both lock the memory bus (lighter weight than the olden days when we could alternatively disable interrupts)\n\nDisabling interrupts only really works on a single CPU, modern architectures make it untenable\n\n\nEasy enough for simple operations\nNot realistic for complex operations\n\nEx. “atomic update of a B-tree”: do we really want to bake such an instruction into the hardware? No"
+  },
+  {
+    "objectID": "day8.html#does-this-solution-meet-the-requirements",
+    "href": "day8.html#does-this-solution-meet-the-requirements",
+    "title": "CSC 453",
+    "section": "Does this solution meet the requirements?",
+    "text": "Does this solution meet the requirements?\nbool test_and_set(bool *lock){\n  bool ret = *lock;\n  *lock = TRUE;\n  return ret;\n}\n\nlock = FALSE;\ndo{\n  while(test_and_set(&lock));\n  // CRITICAL SECTION\n  lock = FALSE;\n}while(true)\n\nMutual exclusion?\n\nYes\n\nProgress?\n\nYes: when the lock is released, a waiting process will acquire it\n\nBounded waiting?\n\nNo: an unlucky process could be endlessly passed over based on the scheduler’s decisions"
+  },
+  {
+    "objectID": "day8.html#mutex-locks",
+    "href": "day8.html#mutex-locks",
+    "title": "CSC 453",
+    "section": "Mutex locks",
+    "text": "Mutex locks\n\nPrevious solutions are complicated and generally not used by application programmers\nAny solution to the critical section problem requires a lock\n\nPeterson’s solution is an example (in software)\ntest_and_set() / compare_and_swap() are hardware implementations\n\nSimplest commonly used solution is mutex lock\n\nBoolean variable indicating if lock is available or not"
+  },
+  {
+    "objectID": "day8.html#mutex-locks-contd",
+    "href": "day8.html#mutex-locks-contd",
+    "title": "CSC 453",
+    "section": "Mutex locks (cont’d)",
+    "text": "Mutex locks (cont’d)\n\nProtect a critical section by\n\nFirst acquire() a lock\nThen release() the lock\n\nWhat’s going on under the hood?\nvoid lock(lock_t *lock) {\n  while (test_and_set(&lock-&gt;flag, 1) == 1)\n  ; // spin-wait (do nothing)\n}\n\ntest_and_set() or compare_and_swap()"
+  },
+  {
+    "objectID": "day8.html#mutex-locks-contd-1",
+    "href": "day8.html#mutex-locks-contd-1",
+    "title": "CSC 453",
+    "section": "Mutex locks (cont’d)",
+    "text": "Mutex locks (cont’d)\n\nCalls to acquire() and release() must be atomic\nBut this solution requires busy waiting\n\nThis type of mutex is therefore often called a spinlock\n\nThere are also mutex implementations (e.g., futex) that block to avoid busy-waiting, and some that do both\nNote: mutexes are owned by the thread that locks them. Only the thread that acquired the mutex can release it"
+  },
+  {
+    "objectID": "day8.html#spin-or-block",
+    "href": "day8.html#spin-or-block",
+    "title": "CSC 453",
+    "section": "Spin or block?",
+    "text": "Spin or block?\nFor each scenario, would you use a spinlock or a blocking mutex? Why?\n\n\nA kernel data structure protected by a lock held for ~50 CPU cycles\n\n\nA user-space cache entry lock held for ~100 µs while computing a result\n\n\nA file lock held for several seconds while the file is being edited\n\n\nA lock on a single-CPU system where only one thread can run at a time\n\n\n\nRule of thumb: spin if the expected wait is shorter than ~2 context switches (a context switch is roughly 1–10 µs depending on the system). Otherwise block.\n\n\nSpin. 50 cycles is ~15–25 ns — vastly cheaper than a context switch. Blocking would cost orders of magnitude more than the wait itself. This is exactly how Linux kernel spinlocks are used.\n\n\nBlock. 100 µs is well above the context-switch break-even. While you wait, let another thread actually do work on the CPU.\n\n\nBlock (obviously). Seconds of spinning wastes enormous CPU. You want the waiter off the CPU entirely — probably using a kernel-mediated wait queue.\n\n\nNever spin. On a uniprocessor, the lock holder cannot make progress while you’re spinning — you’re burning the very CPU cycles the holder needs to release the lock. Spinlocks only make sense when another CPU can be releasing the lock concurrently.\n\n\nKey insight: the break-even isn’t about the lock, it’s about the expected hold time relative to the cost of a context switch. Real systems often use adaptive mutexes that spin briefly, then block if the lock isn’t acquired quickly."
+  },
+  {
+    "objectID": "day8.html#consequences-of-busy-waiting",
+    "href": "day8.html#consequences-of-busy-waiting",
+    "title": "CSC 453",
+    "section": "Consequences of busy waiting",
+    "text": "Consequences of busy waiting\nIn 1997, NASA’s Mars Pathfinder started having mysterious resets on Mars. From Earth, engineers saw the system repeatedly rebooting for no obvious reason. Not ideal when your computer is 250 million km away.\nThe cause turned out to be priority inversion in the operating system.\n\nWhat was happening:\n\nA low-priority task was holding a shared resource (a mutex).\n\nA high-priority task needed that resource and blocked, waiting.\nMeanwhile, a medium-priority task—which didn’t need the resource at all—kept preempting the low-priority task.\nResult: the low-priority task never got CPU time to release the resource, so the high-priority task was effectively starved.\n\n\nThe system interpreted this long delay as a fault and triggered a watchdog reset. Over and over."
+  },
+  {
+    "objectID": "day8.html#priority-inversion",
+    "href": "day8.html#priority-inversion",
+    "title": "CSC 453",
+    "section": "Priority inversion",
+    "text": "Priority inversion\n\nAny ideas on how to fix?\n\nPriority inheritance: low priority processes are temporarily given priorities that match those waiting on them"
+  },
+  {
+    "objectID": "day8.html#section-1",
+    "href": "day8.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#semaphores",
+    "href": "day8.html#semaphores",
+    "title": "CSC 453",
+    "section": "Semaphores",
+    "text": "Semaphores\n\n\n\nSynchronization tool that provides more sophisticated ways (than mutex locks) for processes to synchronize their activities\nSemaphore S: integer variable\nCan only be accessed via two atomic operations\n\nwait() and signal()\n\nOriginally called P() and V() (because, Dutch - another Dijkstra invention)\n\n\nDo not have ownership, any thread can signal (increment) or wait (decrement)\n\n\n\n\nwait(S) {\n    while (S &lt;= 0)\n       ; // busy\n    S--;\n}\n\nsignal(S) {\n    S++;\n}"
+  },
+  {
+    "objectID": "day8.html#semaphores-contd",
+    "href": "day8.html#semaphores-contd",
+    "title": "CSC 453",
+    "section": "Semaphores (cont’d)",
+    "text": "Semaphores (cont’d)\n\n\n\nBinary semaphore: integer value can range only between 0 and 1\n\nFunctionally similar to a mutex, but without ownership — any thread can signal it (often when people call something a mutex it’s actually a binary semaphore)\n\n\n\n\n\ndo{\n  wait(mutex);\n  //CS\n  signal(mutex);\n}while(TRUE);\n\n\nCounting semaphore: integer value can range over an unrestricted domain\n\nWhen would this make sense?\n\nProtect a finite set of resources rather than a single one (e.g., you have a pool of db connections that can be shared by processes)\nInitialize S to the number of resources\nDecrement S each time someone grabs a resource, increment when they release"
+  },
+  {
+    "objectID": "day8.html#semaphores-contd-1",
+    "href": "day8.html#semaphores-contd-1",
+    "title": "CSC 453",
+    "section": "Semaphores (cont’d)",
+    "text": "Semaphores (cont’d)\n\n\n\nCan also be used to force synchronization\nConsider \\(P_1\\) and \\(P_2\\) that with two statements \\(S_1\\) and \\(S_2\\) and the requirement that \\(S_1\\) to happen before \\(S_2\\)\n\n\n\n\nP1:\n   S1;\n   signal(sync);\nP2:\n   wait(sync);\n   S2;"
+  },
+  {
+    "objectID": "day8.html#blocking-semaphores",
+    "href": "day8.html#blocking-semaphores",
+    "title": "CSC 453",
+    "section": "Blocking semaphores",
+    "text": "Blocking semaphores\n\n\n\nWe add sleep() and wakeup() to the underlying implementation\nCall to wait, and semaphore not available, process is blocked with sleep() (wait state) and placed on a waiting queue\nBlocked processes are notified of an available semaphore by the wakeup() operation\n\ngoes from waiting to ready\nAble to achieve bounded wait and progress with FIFO queue\n\n\n\n\n\nwait(semaphore *S) {\n   S-&gt;value--;\n   if (S-&gt;value &lt; 0) {\n      add process to S-&gt;list;\n      sleep();\n   }\n}\n\nsignal(semaphore *S) {\n   S-&gt;value++;\n   if (S-&gt;value &lt;= 0) {\n      remove P from S-&gt;list;\n      wakeup(P);\n   }\n}"
+  },
+  {
+    "objectID": "day8.html#mutexes-vs.-semaphores",
+    "href": "day8.html#mutexes-vs.-semaphores",
+    "title": "CSC 453",
+    "section": "Mutexes vs. semaphores",
+    "text": "Mutexes vs. semaphores\n\nMutexes are generally lighter weight / faster\nSemaphores can support multiple instances\nSemaphores don’t have the ownership limitations"
+  },
+  {
+    "objectID": "day8.html#choose-your-primitive",
+    "href": "day8.html#choose-your-primitive",
+    "title": "CSC 453",
+    "section": "Choose your primitive",
+    "text": "Choose your primitive\n\nFor each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores\nScenario 1: You need to protect a critical section where only one thread should execute at a time, and the critical section is expected to be held for a relatively long duration.\n\nFutex\n\nScenario 2: You have a pool of database connections, and you need to limit the number of threads that can access these connections simultaneously.\n\nCounting semaphore"
+  },
+  {
+    "objectID": "day8.html#choose-your-primitive-contd",
+    "href": "day8.html#choose-your-primitive-contd",
+    "title": "CSC 453",
+    "section": "Choose your primitive (cont’d)",
+    "text": "Choose your primitive (cont’d)\n\nFor each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores\nScenario 3: You need to increment a shared counter frequently, and the operation is very quick.\n\nAtomic instruction\n\nScenario 4: You need to protect a critical section where only one thread should execute at a time, but the critical section is expected to be held for a very short duration.\n\nSpin lock mutex"
+  },
+  {
+    "objectID": "day8.html#beware-mistakes-are-easy-to-make",
+    "href": "day8.html#beware-mistakes-are-easy-to-make",
+    "title": "CSC 453",
+    "section": "Beware: mistakes are easy to make",
+    "text": "Beware: mistakes are easy to make\n\nIncorrect use of semaphore operations\n\nwrong order: signal(mutex) … wait(mutex)\nrepeating: wait(mutex) … wait(mutex)\nOmitting of wait(mutex) and/or signal(mutex)\n\nBe careful"
+  },
+  {
+    "objectID": "day8.html#condition-variables",
+    "href": "day8.html#condition-variables",
+    "title": "CSC 453",
+    "section": "Condition variables",
+    "text": "Condition variables\n\nPaired with a mutex to let threads wait for a condition rather than spin\nx.wait(): calling thread releases the mutex and suspends until signaled\nx.signal(): wakes one waiter (if any); no effect if no waiters\nx.broadcast(): wake all waiters — useful when multiple threads may now be able to proceed\nGood fit for producer-consumer and any case where threads must sleep until a resource / condition is ready"
+  },
+  {
+    "objectID": "day8.html#section-2",
+    "href": "day8.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider-2",
+    "href": "day8.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the four necessary conditions for deadlock, and why must all four be present simultaneously?\nHow can Resource Allocation Graphs help us visualize and understand when deadlock might occur?\nWhy is a cycle necessary but not sufficient for deadlock when there are multiple instances of a resource?"
+  },
+  {
+    "objectID": "day8.html#deadlocks-1",
+    "href": "day8.html#deadlocks-1",
+    "title": "CSC 453",
+    "section": "Deadlocks",
+    "text": "Deadlocks\n\nIf we’re not careful about dependencies, we might create pathologies that lead to deadlock\n\nLike race conditions, may only happen sometimes, making them hard to identify and debug\n\nExample: Three processes, three resources of the same type, each process requires two resources to make progress\n\nThis can happen across a network as well, which is particularly hard to diagnose\n\nCan we detect and resolve these situations? Can we prevent them?"
+  },
+  {
+    "objectID": "day8.html#deadlock-example",
+    "href": "day8.html#deadlock-example",
+    "title": "CSC 453",
+    "section": "Deadlock example",
+    "text": "Deadlock example\n\nClassic example: Thread1 holds lock L1 and is waiting for lock L2. Thread2 holds L2 and is waiting for L1\n  Thread 1:                       Thread 2:\n  pthread_mutex_lock(L1);         pthread_mutex_lock(L2);\n  pthread_mutex_lock(L2);         pthread_mutex_lock(L1);"
+  },
+  {
+    "objectID": "day8.html#deadlock-characteristics",
+    "href": "day8.html#deadlock-characteristics",
+    "title": "CSC 453",
+    "section": "Deadlock characteristics",
+    "text": "Deadlock characteristics\n\nDefinition: A set of processes are deadlocked if each process in the set is waiting for an event that only another process in the set can cause.\n\nResource deadlock is the most common (and what we’ll focus on)"
+  },
+  {
+    "objectID": "day8.html#conditions-for-deadlock",
+    "href": "day8.html#conditions-for-deadlock",
+    "title": "CSC 453",
+    "section": "Conditions for deadlock",
+    "text": "Conditions for deadlock\n\nFour necessary conditions (simultaneous):\n\nMutual exclusion: At least one resource can only be held by one process at a time; this can result in other processes waiting for that resources\nHold and wait: A process must be holding at least one resource while waiting for other resources (held by other processes)\nNo preemption: Resources can only be released voluntarily by a process; Resources cannot be revoked\nCircular wait: A set of \\(n\\) waiting process \\({P_0, ..., P_n}\\) such that \\(P_i\\) is waiting for resources held by \\(P_{i+1 \\bmod{n}}\\)\n\nAll must be met, and some imply others: e.g. Circular wait implies hold and wait."
+  },
+  {
+    "objectID": "day8.html#deadlock-conditions",
+    "href": "day8.html#deadlock-conditions",
+    "title": "CSC 453",
+    "section": "Deadlock conditions",
+    "text": "Deadlock conditions\n\nEach condition relates to a policy that may or may not be implemented\n\nQ: Can a resource be assigned to more than one process?\nQ: Can a process request multiple resources? Over what period of time?\nQ: Can resources be preempted, and how?"
+  },
+  {
+    "objectID": "day8.html#deadlock-modeling",
+    "href": "day8.html#deadlock-modeling",
+    "title": "CSC 453",
+    "section": "Deadlock modeling",
+    "text": "Deadlock modeling\n\n\n\nResource Allocation Graphs: A directed graph, where process and resources are nodes (sometimes circles and squares respectively), and edges are resource allocations & requests\nGraph for\nThread 1:                   Thread 2:\npthread_mutex_lock(L1);     pthread_mutex_lock(L2);\npthread_mutex_lock(L2);     pthread_mutex_lock(L1);\n\n\n\n\n\n\n\nCycles in a graph indicate deadlock\n\nWhen resources have only one instance: A cycle is both necessary and sufficient for deadlock\nIf there are multiple instances: A cycle is necessary but not sufficient for a deadlock"
+  },
+  {
+    "objectID": "day8.html#is-this-deadlocked",
+    "href": "day8.html#is-this-deadlocked",
+    "title": "CSC 453",
+    "section": "Is this deadlocked?",
+    "text": "Is this deadlocked?\n\nThere is a cycle\nBut no hold and wait"
+  },
+  {
+    "objectID": "day8.html#section-3",
+    "href": "day8.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider-3",
+    "href": "day8.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the approaches to handling deadlock? How practical is each? How do they differ in approach?\nHow does deadlock avoidance differ from deadlock prevention? What techniques do we implement for deadlock avoidance?\nWhat are the trade-offs between detecting/recovering from deadlock versus preventing or avoiding it, and when is detection practical?"
+  },
+  {
+    "objectID": "day8.html#how-should-the-os-handle-deadlocks",
+    "href": "day8.html#how-should-the-os-handle-deadlocks",
+    "title": "CSC 453",
+    "section": "How should the OS handle deadlocks?",
+    "text": "How should the OS handle deadlocks?\n\nOS can prevent deadlock: ensure deadlocks can never occur (by preventing one of the deadlock requirements from occurring)\nOS can avoid deadlock: like prevention, but given more information about a processes resource needs\nOS can detect deadlock: allow system to deadlock, detect and recover\nOS can do nothing, and let applications handle it\n\nOstrich Algorithm: head in sand; wait"
+  },
+  {
+    "objectID": "day8.html#deadlock-prevention",
+    "href": "day8.html#deadlock-prevention",
+    "title": "CSC 453",
+    "section": "Deadlock prevention",
+    "text": "Deadlock prevention\n\nRemember, we just have to break one of these to prevent deadlock\n\nMutual exclusion\nHold and wait\nNo preemption\nCircular wait\n\n\n\nAny ideas?\n\n\nExample Strategies: - Dynamic Resource Allocation: Implement algorithms that dynamically adjust resource allocation based on current system state and process priorities. - Timeout Mechanism: Introduce timeouts for resource requests, forcing processes to release resources if they cannot acquire all necessary resources within a certain timeframe. - Resource Hierarchies: Establish a hierarchy for resource allocation, ensuring that processes request resources in a predefined order to avoid circular wait conditions. - Predictive Analysis: Use machine learning to predict potential deadlock scenarios based on historical data and proactively adjust resource allocation.\nFollow-Up Questions: - How does your strategy address mutual exclusion? - Can your strategy be implemented in real-world systems? If so, how? - What challenges might arise when implementing your strategy?"
+  },
+  {
+    "objectID": "day8.html#attacking-mutual-exclusion",
+    "href": "day8.html#attacking-mutual-exclusion",
+    "title": "CSC 453",
+    "section": "Attacking mutual exclusion",
+    "text": "Attacking mutual exclusion\n\nNo one resource can only be held by one process at a time; while some resources are preemptable (like memory, through swapping) preventing mutual exclusion is fundamentally difficult as so many resource are non-sharable: printers, files, disks, etc.\n\nSpoolers can sidestep this for some resources (e.g., a print spooler accepts jobs so no one “owns” the printer directly)"
+  },
+  {
+    "objectID": "day8.html#attacking-hold-and-wait",
+    "href": "day8.html#attacking-hold-and-wait",
+    "title": "CSC 453",
+    "section": "Attacking hold and wait",
+    "text": "Attacking hold and wait\n\nWhen a process requests a resource, it cannot be holding any other resources\nA process must request all of its resources at one time\nExample, treat group of lock acquisitions like a critical section and surround with a mutex\npthread_mutex_lock(global_lock);\npthread_mutex_lock(L1);\npthread_mutex_lock(L2);\n...\npthread_mutex_unlock(global_lock);\nSee any downsides?\n\nMust know all needed locks a priori\nWill likely decrease concurrency"
+  },
+  {
+    "objectID": "day8.html#attacking-no-preemption",
+    "href": "day8.html#attacking-no-preemption",
+    "title": "CSC 453",
+    "section": "Attacking no preemption",
+    "text": "Attacking no preemption\n\nIf a process is holding some resources and requests another that cannot be immediately allocated, then all resources held are released\nProcess is restarted only when it can regain its old resources plus the new\nOr, if a process requests a resource that cannot be immediately allocated, then all resources held are preempted and added to the list of available resources\nDownsides?\n\nNot all resources are preempt-able\nStarvation is possible"
+  },
+  {
+    "objectID": "day8.html#attacking-circular-wait",
+    "href": "day8.html#attacking-circular-wait",
+    "title": "CSC 453",
+    "section": "Attacking circular wait",
+    "text": "Attacking circular wait\n\nHow could you prevent by focusing on the circular wait requirement?\nImpose a total ordering of all resource types\n\nFor example, resource types R1, R2, …, Rn have ordering R1 &lt; R2 &lt; … &lt; Rn\nA process that needs multiple resources must request them in increasing order of enumeration\n\nDownsides?\n\nMay be difficult to impose a meaningful ordering\nMay lead to reduced concurrency"
+  },
+  {
+    "objectID": "day8.html#deadlock-prevention-summary",
+    "href": "day8.html#deadlock-prevention-summary",
+    "title": "CSC 453",
+    "section": "Deadlock prevention summary",
+    "text": "Deadlock prevention summary\n\nWhich approach is best?\n\nAttacking mutual exclusion is generally not feasible\nAttacking hold and wait is wasteful and requires prescience\nAttacking no preemption is difficult due to non-preemptable resources\nAttacking circular wait is practical but may reduce concurrency - often the best choice and most used"
+  },
+  {
+    "objectID": "day8.html#section-4",
+    "href": "day8.html#section-4",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#deadlock-avoidance",
+    "href": "day8.html#deadlock-avoidance",
+    "title": "CSC 453",
+    "section": "Deadlock avoidance",
+    "text": "Deadlock avoidance\n\nAll of the prevention techniques can be heavy-handed, reducing concurrency and overall system throughput\nWhat if we had more information about process resource needs before allocation?\n\nCould we make smarter decisions about resource allocation?\n\nThis is the idea behind deadlock avoidance"
+  },
+  {
+    "objectID": "day8.html#avoidance-via-resource-allocation-graph",
+    "href": "day8.html#avoidance-via-resource-allocation-graph",
+    "title": "CSC 453",
+    "section": "Avoidance via resource-allocation graph",
+    "text": "Avoidance via resource-allocation graph\n\n\n\nIntroduce the idea of a claim edge (dashed line) from a process to a resource\n\nIndicates that the process may request that resource in the future\n\nThe system can maintain this graph, and only grant resources that will not create a cycle\nAny downsides / limitations?\n\nOverhead of maintaining the graph and checking for cycles\nOnly applicable to single instance resources"
+  },
+  {
+    "objectID": "day8.html#deadlock-avoidance-in-practice",
+    "href": "day8.html#deadlock-avoidance-in-practice",
+    "title": "CSC 453",
+    "section": "Deadlock avoidance in practice",
+    "text": "Deadlock avoidance in practice\n\nDijkstra’s Banker’s algorithm is the textbook example — each process declares its max resource needs, and requests are only granted if the resulting state is “safe.” Not used in practice: overhead plus the prescience requirement\nResource-allocation graph with claim edges sees occasional use in constrained settings (e.g., embedded systems where max needs are predictable)"
+  },
+  {
+    "objectID": "day8.html#detecting-and-recovering-from-deadlock",
+    "href": "day8.html#detecting-and-recovering-from-deadlock",
+    "title": "CSC 453",
+    "section": "Detecting and recovering from deadlock",
+    "text": "Detecting and recovering from deadlock\n\nAllow deadlocks to occur, then detect and recover\nIn some cases, recovery is pretty simple. If your machine froze once per year (maybe it does?) what would you do?\n\nReboot\n\nWhat scenarios do you think complex detection and recovery would make sense?\n\nSystems with high availability requirements where manual intervention is costly or impractical\n\ntelecommunications systems, financial transaction systems, healthcare systems\ncritical infrastructure systems"
+  },
+  {
+    "objectID": "day8.html#detection",
+    "href": "day8.html#detection",
+    "title": "CSC 453",
+    "section": "Detection",
+    "text": "Detection\n\nUse a wait-for graph: a simplified resource-allocation graph that removes resource nodes\n\nAn edge from process \\(P_i\\) to \\(P_j\\) indicates that \\(P_i\\) is waiting for a resource held by \\(P_j\\)\nA cycle in this graph indicates a deadlock\n\\(O(n^2)\\) algorithm to search for cycles (beyond the cost of maintaining the graph itself)\nOnly applies to single instance resources"
+  },
+  {
+    "objectID": "day8.html#detection-contd",
+    "href": "day8.html#detection-contd",
+    "title": "CSC 453",
+    "section": "Detection (cont’d)",
+    "text": "Detection (cont’d)"
+  },
+  {
+    "objectID": "day8.html#detection-contd-1",
+    "href": "day8.html#detection-contd-1",
+    "title": "CSC 453",
+    "section": "Detection (cont’d)",
+    "text": "Detection (cont’d)\n\nFor multiple instance resources, we can use an algorithm similar to the Banker’s algorithm to detect deadlock\nQuestion: How often should we run the detection algorithm?\n\nToo often: wasteful overhead\nNot often enough: long delays before recovery\nWhat if we run it when a process requests a resource?\n\nCould allow us to assign blame for deadlock to the requesting process\n\nHeuristically (CPU utilization, etc.)\n\nLess overhead, but harder to assign blame"
+  },
+  {
+    "objectID": "day8.html#recovery-options",
+    "href": "day8.html#recovery-options",
+    "title": "CSC 453",
+    "section": "Recovery options",
+    "text": "Recovery options\n\nProcess termination\n\nAbort all deadlocked processes (brute force)\nAbort one process at a time until deadlock is resolved\n\nHow to choose which process to abort?\n\nPriority, time running, resources used, etc.\n\n\n\nResource preemption\n\nTemporarily take resources away from some processes and give to others until deadlock is resolved\nHighly dependent on the resource type\nRollback problem - processes may need to be rolled back to a safe state before resources can be reallocated\nStarvation problem - same victims may be chosen repeatedly"
+  },
+  {
+    "objectID": "day8.html#handling-deadlocks-summary",
+    "href": "day8.html#handling-deadlocks-summary",
+    "title": "CSC 453",
+    "section": "Handling deadlocks summary",
+    "text": "Handling deadlocks summary\n\nWhen to use which technique?\n\nPrevention: when you can afford to limit concurrency and throughput for simplicity\nAvoidance: when you have good information about process resource needs and can afford the overhead\nDetection and recovery: when deadlocks are rare and the overhead of prevention/avoidance is unjustified\nDo nothing: when deadlocks are extremely rare or tolerable and can be handled at the application level\n\nDepends on contention: if resources are highly contended, prevention/avoidance may be necessary to maintain performance"
+  },
+  {
+    "objectID": "day8.html#section-5",
+    "href": "day8.html#section-5",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day7.html#admin",
+    "href": "day7.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab due today at 11:59pm\nQuiz due Monday at 11:59pm\nExam 1 next Tuesday"
+  },
+  {
+    "objectID": "day7.html#questions-to-consider",
+    "href": "day7.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the differences between processes and threads?\nWhen are threads beneficial?\nHow are threads limited by Amdahl’s Law?"
+  },
+  {
+    "objectID": "day7.html#motivation-context-switching-is-expensive",
+    "href": "day7.html#motivation-context-switching-is-expensive",
+    "title": "CSC 453",
+    "section": "Motivation: context switching is expensive",
+    "text": "Motivation: context switching is expensive\n\nconsider the modern word processor, which concurrently:\n\naccepts user input,\nperforms auto-correct/spell checking;\nauto-detects formatting\nauto-save (nothing could be entered until save was complete);\n\nAll impossible (or at least very inconvenient) without threads."
+  },
+  {
+    "objectID": "day7.html#processes-vs-threads",
+    "href": "day7.html#processes-vs-threads",
+    "title": "CSC 453",
+    "section": "Processes vs threads",
+    "text": "Processes vs threads\n\nPotentially confusing due to overlapping terminology: we can describe both a process and a thread as running\nTerminology can be helpful for remembering the distinction:\n\nA computing process requires multiple resources: the CPU, memory, files, etc.\nA thread of execution abstracts CPU state"
+  },
+  {
+    "objectID": "day7.html#processes-vs-threads-contd",
+    "href": "day7.html#processes-vs-threads-contd",
+    "title": "CSC 453",
+    "section": "Processes vs threads (cont’d)",
+    "text": "Processes vs threads (cont’d)\n\nProcesses contain threads; threads belong to a process\n\nOnly one exception: the kernel may have threads of execution not associated with any user process\n\nThreads each have their own stack and registers\n\nWhy?\n\nA process is considered to be running when one or more of its threads are running\nDifferent operating systems use different terminology, but share common ideas"
+  },
+  {
+    "objectID": "day7.html#intra-process-communication",
+    "href": "day7.html#intra-process-communication",
+    "title": "CSC 453",
+    "section": "Intra-process communication",
+    "text": "Intra-process communication\n\nCommunication between multiple threads in a process is usually accomplished using shared memory (since they naturally share it)\n\nPotential issues?\n\nSynchronization (we’ll come back to this)\n\n\nThreads within a process also share open file handles and both static and dynamically-allocated global variables.\nThread stacks and thus thread local variables are typically private."
+  },
+  {
+    "objectID": "day7.html#why-do-we-use-threads-pros",
+    "href": "day7.html#why-do-we-use-threads-pros",
+    "title": "CSC 453",
+    "section": "Why do we use threads? Pros",
+    "text": "Why do we use threads? Pros\n\nTo support multiple activities within a single process\nResponsiveness: a process may continue to run, even if part of it is blocked (depends on thread implementation)\nResource sharing: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process’s resources (e.g. files)\nEconomy: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load\nHardware support: modern CPUs support multithreading, where threads can run in parallel"
+  },
+  {
+    "objectID": "day7.html#thread-cons",
+    "href": "day7.html#thread-cons",
+    "title": "CSC 453",
+    "section": "Thread cons",
+    "text": "Thread cons\n\nThis is hard. Burdens programmer needs to solve:\n\nDividing activities\nBalance\nData splitting\nData dependency\nTesting and debugging\n\nShare the same address space and global variable: loss of isolation. A runaway thread can wipe out other threads\nNo built-in mechanism for pre-emption, so threads should be well-behaved (unlike greedy processes)\n\\(n\\) threads see \\(1/n\\) of a single CPU; CPU-bound processes make thread moot, or detrimental"
+  },
+  {
+    "objectID": "day7.html#what-makes-more-sense-threads-or-process",
+    "href": "day7.html#what-makes-more-sense-threads-or-process",
+    "title": "CSC 453",
+    "section": "What makes more sense, threads or process?",
+    "text": "What makes more sense, threads or process?\n\nWeb server\nGUI apps\nMultimedia apps\nDB servers\nOS services"
+  },
+  {
+    "objectID": "day7.html#what-makes-more-sense-threads-or-process-1",
+    "href": "day7.html#what-makes-more-sense-threads-or-process-1",
+    "title": "CSC 453",
+    "section": "What makes more sense, threads or process?",
+    "text": "What makes more sense, threads or process?\n\nWeb server - thread (through there are many hybrid implementations)\nGUI apps - thread\nMultimedia apps - thread\nDB servers - both: postgres uses processes, MySQL is multithreaded\nOS services - process"
+  },
+  {
+    "objectID": "day7.html#side-note-fork-and-threading",
+    "href": "day7.html#side-note-fork-and-threading",
+    "title": "CSC 453",
+    "section": "Side note: fork() and threading",
+    "text": "Side note: fork() and threading\n\nWhat happens to threads when you fork()?\nShould a child inherit the threads of their parent?\nWhat happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?\nIn reality (Linux): a child process, only the calling thread is replicated."
+  },
+  {
+    "objectID": "day7.html#a-word-of-caution-amdahls-law",
+    "href": "day7.html#a-word-of-caution-amdahls-law",
+    "title": "CSC 453",
+    "section": "A word of caution: Amdahl’s Law",
+    "text": "A word of caution: Amdahl’s Law\n\nThreads are awesome, let’s parallelize everything, right?\nAmdahl’s Law identifies performance gains from adding additional cores to an application that has both serial and parallel components\n\n\\(S\\) is serial portion\n\\(N\\) processing cores \\[speedup \\le \\frac{1}{S + \\frac{(1-S)}{N}}\\]\n\nThat is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of \\(1.6 \\times\\)\nAs \\(N\\) approaches infinity, speedup approaches \\(1 / S\\)\nSerial portion has a disproportionate effect on performance"
+  },
+  {
+    "objectID": "day7.html#section",
+    "href": "day7.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day7.html#questions-to-consider-1",
+    "href": "day7.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do user threads and kernel threads relate?\nWhat are the different kernel thread models and how do they compare?\n\nWhen should you use each?"
+  },
+  {
+    "objectID": "day7.html#first-things-first",
+    "href": "day7.html#first-things-first",
+    "title": "CSC 453",
+    "section": "First things first",
+    "text": "First things first\n\nA kernel thread is the unit of execution that the OS can run on a CPU core\nA process can only make progress if at least one of its kernel threads is scheduled on a core\nCPUs run kernel threads, not processes\nThe OS scheduler only schedules kernel threads, not user threads"
+  },
+  {
+    "objectID": "day7.html#user-space-threads",
+    "href": "day7.html#user-space-threads",
+    "title": "CSC 453",
+    "section": "User space threads",
+    "text": "User space threads\n\nTotally unknown to the OS\nThread library manages thread table and scheduling\nContext switch is a function call within the process\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a pure user space thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later"
+  },
+  {
+    "objectID": "day7.html#kernel-threads",
+    "href": "day7.html#kernel-threads",
+    "title": "CSC 453",
+    "section": "Kernel threads",
+    "text": "Kernel threads\n\nThread libraries can also have kernel support (this is the common case today)\nThere is no user space runtime environment or thread table: all is managed within the kernel\nSupport for multiple cores\nAll thread interfaces are system calls handled by the kernel"
+  },
+  {
+    "objectID": "day7.html#kernel-threads-contd",
+    "href": "day7.html#kernel-threads-contd",
+    "title": "CSC 453",
+    "section": "Kernel threads (cont’d)",
+    "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (a kernel TRAP)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
+  },
+  {
+    "objectID": "day7.html#thread-design-models-many-to-one-m1",
+    "href": "day7.html#thread-design-models-many-to-one-m1",
+    "title": "CSC 453",
+    "section": "Thread design models: many-to-one (M:1)",
+    "text": "Thread design models: many-to-one (M:1)\n\nKernel threads must support user level threads. There are multiple ways to pull this off\nMany-to-one\n\nA single kernel level thread supports many user level threads\nSwitching between threads is fast (done in user level)\nNo parallelism (kernel thread is supporting only a single user thread at a time)\nIf any user thread makes an I/O blocking call, all user threads in that process are blocked\n\nWhere does this make sense?\n\nIf you need complete control over scheduling\nIf you have no kernel or minimal RTOS kernel"
+  },
+  {
+    "objectID": "day7.html#thread-models-many-to-many-mn",
+    "href": "day7.html#thread-models-many-to-many-mn",
+    "title": "CSC 453",
+    "section": "Thread models: many-to-many (M:N)",
+    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by a number of kernel threads\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\nNow you have two schedulers to deal with (user space and kernel)\ngoroutines are a notable example of M:N in reality (though they are achieved through the Go runtime and not the kernel itself)\n\nWhen to use?\n\nWhen you need maximum concurrency (thousands to millions of threads) and have custom scheduling needs"
+  },
+  {
+    "objectID": "day7.html#thread-models-one-to-one-11",
+    "href": "day7.html#thread-models-one-to-one-11",
+    "title": "CSC 453",
+    "section": "Thread models: one-to-one (1:1)",
+    "text": "Thread models: one-to-one (1:1)\n\nNumber of kernel-level threads is equal to the number of user-level threads (dominant model today)\nCan operate in parallel\nIf one blocks, others can continue\nDownsides?\n\nLose the advantage of fast switching between user threads\nAny new user thread requires kernel thread creation: expensive\nProgrammer loses scheduling control: kernel makes decisions\n\nVery popular model: Linux & Windows\n\nEasy to implement\nMost machines have multiple cores so we can support a lot of kernel threads"
+  },
+  {
+    "objectID": "day7.html#which-models-make-sense",
+    "href": "day7.html#which-models-make-sense",
+    "title": "CSC 453",
+    "section": "Which models make sense?",
+    "text": "Which models make sense?\n\nDistributed scientific computing\n\n1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way\n\nEmbedded system\n\nM:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core\n\nPrometheus (distributed monitoring system)\n\nM:N - scrapes metrics from thousands of endpoints concurrently using goroutines; the Go runtime multiplexes these onto a small pool of kernel threads, enabling massive scaling without a kernel thread per target"
+  },
+  {
+    "objectID": "day7.html#section-1",
+    "href": "day7.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day7.html#questions-to-consider-2",
+    "href": "day7.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do we actually create and manage threads in C?\nWhat happens when two threads touch the same variable?\nHow do threads coordinate without busy-waiting?\n\n\nWe’ve spent two sections on the concepts of threads - what they are, how the kernel sees them. Now we shift to the practical side: if I hand you a C compiler, how do you actually write a multithreaded program? These three questions are what the rest of this section is built around."
+  },
+  {
+    "objectID": "day7.html#posix-threads-pthreads",
+    "href": "day7.html#posix-threads-pthreads",
+    "title": "CSC 453",
+    "section": "POSIX threads (pthreads)",
+    "text": "POSIX threads (pthreads)\n\nStandard C threading API on Linux/macOS/BSD (#include &lt;pthread.h&gt;, link with -lpthread)\nBacked by 1:1 kernel threads on Linux (NPTL)\nCore primitives:\n\npthread_create / pthread_join - spawn and wait\npthread_mutex_t - mutual exclusion\npthread_cond_t - condition variables\n\n\n\nPOSIX threads - pronounced “pee-threads” - is the standard. It’s been around since the mid-90s and it’s what you get on essentially any Unix-like system. On Linux it’s implemented by NPTL, which gives you the 1:1 model we just talked about - every pthread_create is a real kernel thread. The API is small: you create/join threads, you lock mutexes, and you wait on condition variables. That’s basically it. Three primitives, and everything else is built on top."
+  },
+  {
+    "objectID": "day7.html#creating-and-joining",
+    "href": "day7.html#creating-and-joining",
+    "title": "CSC 453",
+    "section": "Creating and joining",
+    "text": "Creating and joining\n#include &lt;pthread.h&gt;\n#include &lt;stdio.h&gt;\n\nvoid *worker(void *arg) {\n    int id = *(int *)arg;\n    printf(\"hello from thread %d\\n\", id);\n    return NULL;\n}\n\nint main(void) {\n    pthread_t t1, t2;\n    int a = 1, b = 2;\n    pthread_create(&t1, NULL, worker, &a);\n    pthread_create(&t2, NULL, worker, &b);\n    pthread_join(t1, NULL);\n    pthread_join(t2, NULL);\n    return 0;\n}\n\nWalk through with the highlight steps:\n\nworker function - every pthread entry point has this signature: takes a void *, returns a void *. That’s how you pass arguments in and get results out. We cast to int * to recover the argument.\nthread handles and args - pthread_t is an opaque handle - think of it like a PID but for threads. Note we pass pointers to a and b. A common bug: passing &i from a loop counter - by the time the thread runs, i has moved on.\ncreate - this is where a new kernel thread is actually spawned. After this call returns, two threads are running. No guarantee which one runs first, or even whether the parent reaches the next line before the child finishes.\njoin - the parent blocks until each child finishes. Without join, main could return and the whole process exits while workers are mid-printf. join is also how you collect the return value - we’re passing NULL because we don’t care here."
+  },
+  {
+    "objectID": "day7.html#the-problem-shared-state",
+    "href": "day7.html#the-problem-shared-state",
+    "title": "CSC 453",
+    "section": "The problem: shared state",
+    "text": "The problem: shared state\n\nTwo threads, both running counter++ one million times\ncounter++ is not atomic - it compiles to load, add, store\nThreads can interleave between those steps and clobber each other\nResult: final value is some number less than 2,000,000, and it’s different every run\nThis is a race condition: correctness depends on timing\n\n\nThis is the motivating example for synchronization. Try it at home: spawn two threads, each does counter++ a million times. You’d expect 2,000,000. You almost never get it.\nThe key insight is that counter++ looks atomic in C but isn’t at the hardware level. It’s three instructions: load from memory into a register, add one, store back. If thread A loads, then thread B loads the same value before A stores, they both add one to the same number - and one increment is lost.\nThe really nasty part: this bug might only show up once every thousand runs. Race conditions are the worst kind of bug because they’re nondeterministic. This is why the rest of our concurrency work matters."
+  },
+  {
+    "objectID": "day7.html#mutexes-preview",
+    "href": "day7.html#mutexes-preview",
+    "title": "CSC 453",
+    "section": "Mutexes (preview)",
+    "text": "Mutexes (preview)\n\nA mutex (mutual exclusion lock) enforces that only one thread at a time is inside a critical section\npthread_mutex_lock blocks until the lock is available, then acquires it\npthread_mutex_unlock releases it so another waiter can proceed\nWe’ll dig into how these work (hardware atomics, spinlocks, futexes) in the coming weeks\n\n\nA mutex is the simplest answer to the race condition: draw a fence around the shared state and say “only one thread inside at a time.” The region inside the fence is called the critical section.\nRight now I just want you to have the mental model: lock = enter, unlock = leave. If another thread is inside, your lock call blocks until they leave. We’ll spend real time later on how this is actually implemented - it turns out to be genuinely hard, and involves CPU instructions like compare-and-swap, and a Linux-specific mechanism called futexes that lets the kernel get involved only when there’s contention."
+  },
+  {
+    "objectID": "day7.html#mutex-example",
+    "href": "day7.html#mutex-example",
+    "title": "CSC 453",
+    "section": "Mutex example",
+    "text": "Mutex example\npthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;\nlong counter = 0;\n\nvoid *bump(void *arg) {\n    for (int i = 0; i &lt; 1000000; i++) {\n        pthread_mutex_lock(&lock);\n        counter++;              // critical section\n        pthread_mutex_unlock(&lock);\n    }\n    return NULL;\n}\n\nNow the increment is safe - but threads may spend time waiting\nKeep critical sections small: lock, touch shared data, unlock\n\n\nWalk through the highlights:\n\nglobals - PTHREAD_MUTEX_INITIALIZER is a compile-time initializer for statically allocated mutexes. For dynamic allocation you’d use pthread_mutex_init. The mutex has to be shared - if each thread had its own mutex, it would defend nothing.\nlock - this line is the gate. If another thread is already inside, we block here. The kernel can put us to sleep; we don’t spin forever.\ncritical section - this is now atomic with respect to other threads that use the same lock. Note: only threads that also lock &lock respect this. A rogue thread doing counter++ without the lock still breaks everything. Locks are a convention.\nunlock - critical: don’t forget this. If you return or exit early inside the critical section without unlocking, every other thread blocks forever. This is a big source of bugs in C; RAII in C++ and defer in Go exist specifically to prevent it.\n\nTradeoff to flag: we’ve serialized part of the work. If the critical section is huge, we’ve basically made the program single-threaded. Lock small regions."
+  },
+  {
+    "objectID": "day7.html#condition-variables-preview",
+    "href": "day7.html#condition-variables-preview",
+    "title": "CSC 453",
+    "section": "Condition variables (preview)",
+    "text": "Condition variables (preview)\n\nMutexes answer “who gets in?” - condition variables answer “when should I wake up?”\nUse case: consumer thread has nothing to do until the producer puts something in the queue\nAlternative - busy-waiting (while (queue_empty()) {}) - burns CPU for nothing\nA condition variable lets a thread sleep until another thread signals that a condition may now be true\n\n\nImportant framing: mutexes and condition variables solve different problems, and they work together, not instead of each other.\nMutex: “only one of us at a time.” That’s about protecting data.\nCondition variable: “I have nothing to do right now - wake me up when something changes.” That’s about coordinating events.\nThe motivating example is a work queue. A consumer thread wants to grab the next item and process it. If the queue is empty, what should it do? Busy-waiting - spinning in a loop checking queue_empty() - works but wastes an entire CPU doing nothing useful. Worse, it can actually prevent the producer from running. Condition variables let the consumer sleep efficiently and get woken up exactly when there’s work."
+  },
+  {
+    "objectID": "day7.html#condvar-mechanics",
+    "href": "day7.html#condvar-mechanics",
+    "title": "CSC 453",
+    "section": "Condvar mechanics",
+    "text": "Condvar mechanics\n\nAlways paired with a mutex that protects the shared state being checked\npthread_cond_wait(&cv, &lock) atomically:\n\nreleases lock\nputs the thread to sleep\nre-acquires lock when woken\n\npthread_cond_signal(&cv) wakes one waiter; pthread_cond_broadcast wakes all\nAlways wait in a while loop, not if - spurious wakeups happen, and another thread may have consumed the condition first\n\n\nThe atomic release/sleep/reacquire is the whole trick. If wait just released the lock and then went to sleep as two separate steps, a signal could arrive in between and be lost - you’d sleep forever waiting for something that already happened. The API is designed to make that impossible.\nThe while loop vs if point is worth emphasizing. Two reasons to re-check the condition after waking:\n\nSpurious wakeups - POSIX explicitly allows wait to return without any signal having been sent. Don’t fight this, just code for it.\nAnother waiter beat you to it - if the producer signals and two consumers are waiting, both might wake up, but only one item exists. The first one takes it, the second one must go back to sleep.\n\nRule of thumb: never write if (!condition) wait(). Always while (!condition) wait()."
+  },
+  {
+    "objectID": "day7.html#producerconsumer-sketch",
+    "href": "day7.html#producerconsumer-sketch",
+    "title": "CSC 453",
+    "section": "Producer/consumer sketch",
+    "text": "Producer/consumer sketch\npthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;\npthread_cond_t  not_empty = PTHREAD_COND_INITIALIZER;\nqueue_t q;\n\nvoid *consumer(void *_) {\n    pthread_mutex_lock(&m);\n    while (queue_empty(&q))\n        pthread_cond_wait(&not_empty, &m);\n    item_t x = queue_pop(&q);\n    pthread_mutex_unlock(&m);\n    process(x);\n    return NULL;\n}\n\nvoid *producer(void *_) {\n    item_t x = make_item();\n    pthread_mutex_lock(&m);\n    queue_push(&q, x);\n    pthread_cond_signal(&not_empty);\n    pthread_mutex_unlock(&m);\n    return NULL;\n}\n\nWalk through the highlights:\n\nshared state - one mutex, one condvar, one queue. The condvar “belongs to” the mutex in the sense that every wait/signal on it happens while holding m.\nconsumer lock - before we can even check the queue, we need the lock. We can’t safely call queue_empty while a producer might be modifying the queue.\nwhile + cond_wait - classic pattern. Check the condition; if not satisfied, wait. When wait returns, we hold the lock again and the condition might be true - loop back and re-check.\npop and unlock - we know the queue isn’t empty because we just exited the while loop holding the lock. Pop, then release the lock before doing process(x) - no reason to hold the lock during the actual work.\nproducer lock and push - mirror image: lock, mutate the shared queue.\nsignal - notify one waiter. broadcast would wake all waiters; use it when the state change might satisfy multiple of them.\nunlock - note: we signal then unlock. Signaling while holding the lock is fine and sometimes clearer; the waiter can’t actually proceed until we release anyway.\n\nThis pattern - mutex + condvar + while-loop check - is the foundation for essentially all higher-level concurrency primitives: bounded queues, semaphores, barriers, read-write locks. If you internalize this, the rest follows."
+  },
+  {
+    "objectID": "day7.html#takeaways",
+    "href": "day7.html#takeaways",
+    "title": "CSC 453",
+    "section": "Takeaways",
+    "text": "Takeaways\n\npthreads gives you a thin, portable interface to 1:1 kernel threads\nShared memory is the blessing and the curse of threading\nMutexes guard data; condition variables coordinate events\nAfter the exam we’ll talk about what’s happening underneath these calls, and on the ways concurrent code can still go wrong (deadlock, starvation, priority inversion, …)\n\n\nMain point: you now have enough vocabulary to read and write basic multithreaded C code. What you don’t yet have is the full picture of what can go wrong. A few things we’ll get to:\n\nDeadlock - thread A holds lock 1 and wants lock 2; thread B holds lock 2 and wants lock 1. Neither can proceed.\nStarvation - a thread keeps getting passed over and never makes progress, even though nothing is technically wrong.\nPriority inversion - a low-priority thread holding a lock blocks a high-priority thread; famously almost killed the Mars Pathfinder mission.\n\nAlso: we’ll look underneath - how a mutex is actually implemented, what a futex is, what atomic instructions the CPU provides, and why memory models matter. Today’s section is the “user” view; the rest of the semester is the “implementer” view."
+  },
+  {
+    "objectID": "day7.html#section-2",
+    "href": "day7.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#admin",
+    "href": "day5.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab 2 due Thursday, 11:59 PM\nExam 1 has been moved to Tuesday, April 28th"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider",
+    "href": "day5.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
+  },
+  {
+    "objectID": "day5.html#pipes-anonymous-pipes",
+    "href": "day5.html#pipes-anonymous-pipes",
+    "title": "CSC 453",
+    "section": "Pipes (anonymous pipes)",
+    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
+  },
+  {
+    "objectID": "day5.html#pipes-contd",
+    "href": "day5.html#pipes-contd",
+    "title": "CSC 453",
+    "section": "Pipes (cont’d)",
+    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
+  },
+  {
+    "objectID": "day5.html#pipe-bugs",
+    "href": "day5.html#pipe-bugs",
+    "title": "CSC 453",
+    "section": "Pipe bugs",
+    "text": "Pipe bugs\nint pipefd[2];\npipe (pipefd);\n\nif (fork () == 0)\n  exit (0);\n\nchar buffer[10];\nread (pipefd[0], buffer, sizeof (buffer));\n\nWhat will happen here?\n\nParent will block indefinitely. Since the child exits without writing anything, and the parent has not closed its own write end, the read end never sees EOF (EOF is only signaled when all write ends are closed)."
+  },
+  {
+    "objectID": "day5.html#named-pipes-also-known-as-fifos",
+    "href": "day5.html#named-pipes-also-known-as-fifos",
+    "title": "CSC 453",
+    "section": "Named pipes (also known as FIFOs)",
+    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes don’t require a parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer\nCan be used for unrelated processes to communicate"
+  },
+  {
+    "objectID": "day5.html#named-pipes-contd",
+    "href": "day5.html#named-pipes-contd",
+    "title": "CSC 453",
+    "section": "Named pipes (cont’d)",
+    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are not regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNot wise to use bidirectionally, why?"
+  },
+  {
+    "objectID": "day5.html#shared-memory-with-mmap",
+    "href": "day5.html#shared-memory-with-mmap",
+    "title": "CSC 453",
+    "section": "Shared memory with mmap",
+    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nData is accessed directly from the page cache without an extra copy into a user buffer\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
+  },
+  {
+    "objectID": "day5.html#memory-mapped-files-posix-and-system-v",
+    "href": "day5.html#memory-mapped-files-posix-and-system-v",
+    "title": "CSC 453",
+    "section": "Memory mapped files: POSIX and System V",
+    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
+  },
+  {
+    "objectID": "day5.html#posix-vs.-system-v",
+    "href": "day5.html#posix-vs.-system-v",
+    "title": "CSC 453",
+    "section": "POSIX vs. System V",
+    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
+  },
+  {
+    "objectID": "day5.html#message-passing-vs.-shared-memory",
+    "href": "day5.html#message-passing-vs.-shared-memory",
+    "title": "CSC 453",
+    "section": "Message passing vs. shared memory",
+    "text": "Message passing vs. shared memory\n\n\nA camera captures frames at 30fps and a separate process runs AI inference on each frame. Which IPC mechanism would you use? What happens if inference is slower than capture?\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”\n\n\nShared memory is the right answer here — here’s why:\n\nEach frame is large (e.g., 1080p = ~6MB uncompressed). Copying that through the kernel on every frame via message passing adds up fast: at 30fps that’s 180MB/s of unnecessary kernel copies.\nWith shared memory, the camera process writes the frame into a shared buffer and signals the inference process — no copy needed.\n\nWhat happens when inference is slower than capture: - With a pipe/message queue: frames queue up. The buffer fills, writes block, and eventually the camera process stalls — you drop frames at the source. - With shared memory + a ring buffer: the writer can overwrite old frames. You still drop frames, but the camera keeps running and the inference process always gets the most recent frame — often the right tradeoff for real-time systems (stale data is worse than no data).\nFollow-up questions:\n\nWho synchronizes access to the shared buffer? (Needs a mutex or semaphore — the OS doesn’t help here.)\nWhat if you need the inference results sent back? (Probably message passing for the small result, shared memory for the frame data.)\nWhat changes if the camera and inference run on different machines? (Shared memory is off the table; forced into message passing over a network.)"
+  },
+  {
+    "objectID": "day5.html#demo",
+    "href": "day5.html#demo",
+    "title": "CSC 453",
+    "section": "Demo",
+    "text": "Demo"
+  },
+  {
+    "objectID": "day5.html#section",
+    "href": "day5.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider-1",
+    "href": "day5.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the differences / tradeoffs between preemptive and non-preemptive scheduling algorithms?\nWhat are the metrics we can attempt to optimize scheduling for a given scenario?"
+  },
+  {
+    "objectID": "day5.html#preemptive-vs.-non-preemptive-scheduling",
+    "href": "day5.html#preemptive-vs.-non-preemptive-scheduling",
+    "title": "CSC 453",
+    "section": "Preemptive vs. non-preemptive scheduling",
+    "text": "Preemptive vs. non-preemptive scheduling\n\nNon-Preemptive: The scheduler only makes scheduling decisions when a process voluntarily gives up the CPU (e.g., by blocking on I/O, completing, or explicitly yielding).\nPreemptive: The scheduler can interrupt a running process and move it to the ready queue at any time (based on time slices, priority changes, etc.), even while it’s actively executing.\nNon-preemptive is easier to implement, but\n\n… doesn’t support multiprogramming very well\n\nPreemptive can be complicated: correctness, utilization, flexibility\n\nSay a process P is preempted while in the middle of inserting an element in a data structure that another process (which is chosen by the scheduler) is going to process"
+  },
+  {
+    "objectID": "day5.html#scheduling-metrics",
+    "href": "day5.html#scheduling-metrics",
+    "title": "CSC 453",
+    "section": "Scheduling metrics",
+    "text": "Scheduling metrics\n\nCPU utilization: keep the CPU as busy as possible\nThroughput: # of processes that complete their execution per time unit\nTurnaround time: amount of time to execute a particular process\nWaiting time: amount of time a process has been waiting in the ready queue\nResponse time: amount of time it takes from when a request was submitted until the first response is produced."
+  },
+  {
+    "objectID": "day5.html#scheduling-scenarios",
+    "href": "day5.html#scheduling-scenarios",
+    "title": "CSC 453",
+    "section": "Scheduling scenarios",
+    "text": "Scheduling scenarios\nWhich metric would you optimize for these situations?\n\n\n\nYou run a data center that charges based on jobs completed\n\nMax throughput: maximize the number of jobs processed per unit time\n\nYou run GeForce Now\n\nMin response time: user experience is the main concern\n\nYou run Github Actions or Travis CI\n\nMin turnaround time: developers need feedback quickly\n\nYou run a supercomputing center\n\nMaximize CPU usage: this stuff is expensive, use it efficiently\n\n\n\n\n\n\nCPU utilization\nThroughput\nTurnaround time\nWaiting time\nResponse time"
+  },
+  {
+    "objectID": "day5.html#example-scheduling-a-911-system",
+    "href": "day5.html#example-scheduling-a-911-system",
+    "title": "CSC 453",
+    "section": "Example: Scheduling a 911 system",
+    "text": "Example: Scheduling a 911 system\nYou’re designing a scheduler for a 911 emergency dispatch system. Which metric matters most? Are there any metrics from the list that would be actively harmful to optimize for?\n\nResponse time is the critical metric — a dispatcher needs to see and act on an incoming call immediately. Any delay between a call arriving and the dispatcher’s screen updating is unacceptable.\nWhat’s actively harmful to optimize for:\n\nThroughput: maximizing calls handled per unit time could cause the scheduler to deprioritize long-running dispatch sessions (active incidents) in favor of shorter ones — exactly backwards.\nCPU utilization: keeping the CPU busy is irrelevant and potentially dangerous. If a high-priority dispatch process needs to run, the CPU should be idle rather than burning cycles on something else.\nTurnaround time: this measures total time from start to finish of a process, which doesn’t map well onto an always-on system handling continuous events.\n\nNo single metric is universally correct — the right metric depends entirely on what the system is for. Note: real safety-critical systems often use priority scheduling with hard real-time guarantees, not the algorithms we’re studying (which are designed for general-purpose throughput/fairness)."
+  },
+  {
+    "objectID": "day5.html#what-does-the-os-scheduler-know-about-a-process",
+    "href": "day5.html#what-does-the-os-scheduler-know-about-a-process",
+    "title": "CSC 453",
+    "section": "What does the OS scheduler know about a process?",
+    "text": "What does the OS scheduler know about a process?\n\nProcess characteristics that we’d like to know in order to achieve our goals\n\nProcessing Time (Burst Time)\nI/O Requirements\nPriority\nAge\nDependencies\n\nThe scheduler knows very little of the above\nIn many cases we are hoping to predict the future. Easy, right?"
+  },
+  {
+    "objectID": "day5.html#section-1",
+    "href": "day5.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider-2",
+    "href": "day5.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do FCFS, SJF, and SRTF compare in terms of tradeoffs between waiting time and response time?\nWhy does SJF require predicting future CPU bursts, and how can we estimate them?\nWhat is starvation in the context of scheduling, and how can we prevent it?"
+  },
+  {
+    "objectID": "day5.html#batch-scheduling-fcfs",
+    "href": "day5.html#batch-scheduling-fcfs",
+    "title": "CSC 453",
+    "section": "Batch scheduling: FCFS",
+    "text": "Batch scheduling: FCFS\n\n\n\nFirst-Come, First-Served (FCFS)\nNon-preemptive\nPros:\n\nEasy to understand, easy to implement\n\nCons?\n\nWaiting time & turnaround time have high variance\nExample: 1 long CPU-bound process and many I/O bound processes\n\nConvoy effect"
+  },
+  {
+    "objectID": "day5.html#fcfs-example",
+    "href": "day5.html#fcfs-example",
+    "title": "CSC 453",
+    "section": "FCFS example",
+    "text": "FCFS example\n\n\n\nCalculate the average waiting time:\nOrder: P1, P2, P3 \nWaiting time P1 = 0; P2 = 24; P3 = 27\nAverage waiting time: \\((0 + 24 + 27)/3 = 17\\)\nOrder P2, P3, P1 \nWaiting time P1 = 6; P2 = 0; P3 = 3\nAverage waiting time: \\((6 + 0 + 3)/3 = 3\\)\n\n\n\n\nProcess Burst Time\n  P1         24\n  P2          3\n  P3          3"
+  },
+  {
+    "objectID": "day5.html#okay-fcfs-can-be-bad",
+    "href": "day5.html#okay-fcfs-can-be-bad",
+    "title": "CSC 453",
+    "section": "Okay, FCFS can be bad",
+    "text": "Okay, FCFS can be bad\nCan we think of a better algorithm to deal with the reality that jobs run for different amounts of time?"
+  },
+  {
+    "objectID": "day5.html#batch-scheduling-shortest-job-first-sjf",
+    "href": "day5.html#batch-scheduling-shortest-job-first-sjf",
+    "title": "CSC 453",
+    "section": "Batch scheduling: shortest job first (SJF)",
+    "text": "Batch scheduling: shortest job first (SJF)\n\n\n\nOrdered by length of the process’s next CPU burst\nNon-preemptive\nPros?\n\nOptimal average waiting time among non-preemptive algorithms\n\nCons?\n\nRequires knowing the future (potentially okay in some situations; examples?)\n\nScientific jobs, batch jobs\n\n\nQuestion: how do we know the length of the upcoming CPU burst?\n\nAsk the process? Estimate? How?"
+  },
+  {
+    "objectID": "day5.html#sjf-how-can-we-predict-the-future",
+    "href": "day5.html#sjf-how-can-we-predict-the-future",
+    "title": "CSC 453",
+    "section": "SJF: how can we predict the future?",
+    "text": "SJF: how can we predict the future?\n\nWe can’t trust a process to tell the truth\nWe can only estimate, how?\n\nThe past (with the hope that the process will act like it has before)\n\nExponential weighted moving average: \\[\nEWMA_t = \\alpha \\times x_t + (1 - \\alpha) \\times EWMA_{t-1}\n\\]\n\\(\\alpha = 0\\)? New measurement does not get taken into account\n\\(\\alpha = 1\\)? History does not get taken into account\n\\(\\alpha\\) is often set to .5"
+  },
+  {
+    "objectID": "day4.html#admin",
+    "href": "day4.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM\nQuiz 2 question on fork bombs…"
+  },
+  {
+    "objectID": "day4.html#scheduling-basics",
+    "href": "day4.html#scheduling-basics",
+    "title": "CSC 453",
+    "section": "Scheduling basics",
+    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider",
+    "href": "day4.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
+  },
+  {
+    "objectID": "day4.html#unix-process-apis",
+    "href": "day4.html#unix-process-apis",
+    "title": "CSC 453",
+    "section": "UNIX process APIs",
+    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
+  },
+  {
+    "objectID": "day4.html#what-happens-during-a-fork",
+    "href": "day4.html#what-happens-during-a-fork",
+    "title": "CSC 453",
+    "section": "What happens during a fork()?",
+    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
+  },
+  {
+    "objectID": "day4.html#new-fork-design",
+    "href": "day4.html#new-fork-design",
+    "title": "CSC 453",
+    "section": "New fork() design",
+    "text": "New fork() design\nYou’re designing an OS. Instead of fork() + exec(), you provide a single spawn(program) call that creates a new process running program directly. What shell features become harder or impossible to implement?\n\nThe key insight is that fork() gives the child a window of time — between fork() and exec() — where it’s a copy of the parent and can reconfigure itself before becoming the new program. spawn() skips that window entirely.\nThings that break or become much harder:\n\nI/O redirection (ls &gt; out.txt): the shell currently forks, then the child closes stdout and opens the file before calling exec(). With spawn(), there’s no moment to do this — you’d have to pass the desired file descriptors as arguments to spawn(), making the interface much more complex.\nPipes (ls | grep foo): the shell forks twice, wires the child processes together with a pipe, then execs. Same problem — no window to set up the pipe ends before execution starts.\nEnvironment manipulation (VAR=value command): the child can modify its own environment between fork() and exec() without affecting the parent. With spawn(), the caller would need to pass the full desired environment explicitly.\nulimit, chdir, nice before exec: same story — any per-process setup that should apply only to the child has to happen in that fork-exec window.\n\nThe broader point: fork() + exec() is a separation of “create a copy of me” from “become a different program,” and that gap is where all the interesting shell plumbing lives."
+  },
+  {
+    "objectID": "day4.html#process-creation",
+    "href": "day4.html#process-creation",
+    "title": "CSC 453",
+    "section": "Process creation",
+    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
+  },
+  {
+    "objectID": "day4.html#process-destruction",
+    "href": "day4.html#process-destruction",
+    "title": "CSC 453",
+    "section": "Process destruction",
+    "text": "Process destruction"
+  },
+  {
+    "objectID": "day4.html#process-destruction-contd",
+    "href": "day4.html#process-destruction-contd",
+    "title": "CSC 453",
+    "section": "Process destruction (cont’d)",
+    "text": "Process destruction (cont’d)\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
+  },
+  {
+    "objectID": "day4.html#zombies-and-orphans",
+    "href": "day4.html#zombies-and-orphans",
+    "title": "CSC 453",
+    "section": "Zombies and orphans",
+    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\n\n\n\n\n\n\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
+  },
+  {
+    "objectID": "day4.html#section",
+    "href": "day4.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-1",
+    "href": "day4.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
+  },
+  {
+    "objectID": "day4.html#isolation-without-full-virtualization",
+    "href": "day4.html#isolation-without-full-virtualization",
+    "title": "CSC 453",
+    "section": "Isolation without full virtualization",
+    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
+  },
+  {
+    "objectID": "day4.html#namespaces-logical-isolation-visibility",
+    "href": "day4.html#namespaces-logical-isolation-visibility",
+    "title": "CSC 453",
+    "section": "Namespaces: logical isolation (visibility)",
+    "text": "Namespaces: logical isolation (visibility)\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
+  },
+  {
+    "objectID": "day4.html#namespaces-example",
+    "href": "day4.html#namespaces-example",
+    "title": "CSC 453",
+    "section": "Namespaces example",
+    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
+  },
+  {
+    "objectID": "day4.html#seeing-namespaces-in-action",
+    "href": "day4.html#seeing-namespaces-in-action",
+    "title": "CSC 453",
+    "section": "Seeing namespaces in action",
+    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
+  },
+  {
+    "objectID": "day4.html#cgroups-resource-limits",
+    "href": "day4.html#cgroups-resource-limits",
+    "title": "CSC 453",
+    "section": "Cgroups: resource limits",
+    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
+  },
+  {
+    "objectID": "day4.html#seeing-cgroups-in-action",
+    "href": "day4.html#seeing-cgroups-in-action",
+    "title": "CSC 453",
+    "section": "Seeing cgroups in action",
+    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
+  },
+  {
+    "objectID": "day4.html#cgroups-vs.-namespaces",
+    "href": "day4.html#cgroups-vs.-namespaces",
+    "title": "CSC 453",
+    "section": "Cgroups vs. namespaces",
+    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
+  },
+  {
+    "objectID": "day4.html#containers-as-a-building-block",
+    "href": "day4.html#containers-as-a-building-block",
+    "title": "CSC 453",
+    "section": "Containers as a building block",
+    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) allow for policy: that can be orchestrated by combining namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
+  },
+  {
+    "objectID": "day4.html#section-1",
+    "href": "day4.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-2",
+    "href": "day4.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
+  },
+  {
+    "objectID": "day4.html#processes-give-us-a-protection-boundary",
+    "href": "day4.html#processes-give-us-a-protection-boundary",
+    "title": "CSC 453",
+    "section": "Processes give us a protection boundary",
+    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
+  },
+  {
+    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "title": "CSC 453",
+    "section": "Why do we need IPC? What are the benefits?",
+    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
+  },
+  {
+    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
+    "href": "day4.html#what-are-the-disadvantages-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the disadvantages of IPC?",
+    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
+  },
+  {
+    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the two main categories of IPC?",
+    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
+  },
+  {
+    "objectID": "day4.html#message-passing",
+    "href": "day4.html#message-passing",
+    "title": "CSC 453",
+    "section": "Message passing",
+    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-message-passing",
+    "href": "day4.html#pros-and-cons-of-message-passing",
+    "title": "CSC 453",
+    "section": "Pros and cons of message passing?",
+    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
+  },
+  {
+    "objectID": "day4.html#shared-memory",
+    "href": "day4.html#shared-memory",
+    "title": "CSC 453",
+    "section": "Shared memory",
+    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-shared-memory",
+    "href": "day4.html#pros-and-cons-of-shared-memory",
+    "title": "CSC 453",
+    "section": "Pros and cons of shared memory?",
+    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
+  },
+  {
+    "objectID": "day4.html#section-2",
+    "href": "day4.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day2.html#admin",
     "href": "day2.html#admin",
     "title": "CSC 453",
@@ -681,643 +1738,6 @@
   {
     "objectID": "day2.html#section-3",
     "href": "day2.html#section-3",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day4.html#admin",
-    "href": "day4.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM\nQuiz 2 question on fork bombs…"
-  },
-  {
-    "objectID": "day4.html#scheduling-basics",
-    "href": "day4.html#scheduling-basics",
-    "title": "CSC 453",
-    "section": "Scheduling basics",
-    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider",
-    "href": "day4.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
-  },
-  {
-    "objectID": "day4.html#unix-process-apis",
-    "href": "day4.html#unix-process-apis",
-    "title": "CSC 453",
-    "section": "UNIX process APIs",
-    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
-  },
-  {
-    "objectID": "day4.html#what-happens-during-a-fork",
-    "href": "day4.html#what-happens-during-a-fork",
-    "title": "CSC 453",
-    "section": "What happens during a fork()?",
-    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
-  },
-  {
-    "objectID": "day4.html#new-fork-design",
-    "href": "day4.html#new-fork-design",
-    "title": "CSC 453",
-    "section": "New fork() design",
-    "text": "New fork() design\nYou’re designing an OS. Instead of fork() + exec(), you provide a single spawn(program) call that creates a new process running program directly. What shell features become harder or impossible to implement?\n\nThe key insight is that fork() gives the child a window of time — between fork() and exec() — where it’s a copy of the parent and can reconfigure itself before becoming the new program. spawn() skips that window entirely.\nThings that break or become much harder:\n\nI/O redirection (ls &gt; out.txt): the shell currently forks, then the child closes stdout and opens the file before calling exec(). With spawn(), there’s no moment to do this — you’d have to pass the desired file descriptors as arguments to spawn(), making the interface much more complex.\nPipes (ls | grep foo): the shell forks twice, wires the child processes together with a pipe, then execs. Same problem — no window to set up the pipe ends before execution starts.\nEnvironment manipulation (VAR=value command): the child can modify its own environment between fork() and exec() without affecting the parent. With spawn(), the caller would need to pass the full desired environment explicitly.\nulimit, chdir, nice before exec: same story — any per-process setup that should apply only to the child has to happen in that fork-exec window.\n\nThe broader point: fork() + exec() is a separation of “create a copy of me” from “become a different program,” and that gap is where all the interesting shell plumbing lives."
-  },
-  {
-    "objectID": "day4.html#process-creation",
-    "href": "day4.html#process-creation",
-    "title": "CSC 453",
-    "section": "Process creation",
-    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
-  },
-  {
-    "objectID": "day4.html#process-destruction",
-    "href": "day4.html#process-destruction",
-    "title": "CSC 453",
-    "section": "Process destruction",
-    "text": "Process destruction"
-  },
-  {
-    "objectID": "day4.html#process-destruction-contd",
-    "href": "day4.html#process-destruction-contd",
-    "title": "CSC 453",
-    "section": "Process destruction (cont’d)",
-    "text": "Process destruction (cont’d)\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
-  },
-  {
-    "objectID": "day4.html#zombies-and-orphans",
-    "href": "day4.html#zombies-and-orphans",
-    "title": "CSC 453",
-    "section": "Zombies and orphans",
-    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\n\n\n\n\n\n\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
-  },
-  {
-    "objectID": "day4.html#section",
-    "href": "day4.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider-1",
-    "href": "day4.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
-  },
-  {
-    "objectID": "day4.html#isolation-without-full-virtualization",
-    "href": "day4.html#isolation-without-full-virtualization",
-    "title": "CSC 453",
-    "section": "Isolation without full virtualization",
-    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
-  },
-  {
-    "objectID": "day4.html#namespaces-logical-isolation-visibility",
-    "href": "day4.html#namespaces-logical-isolation-visibility",
-    "title": "CSC 453",
-    "section": "Namespaces: logical isolation (visibility)",
-    "text": "Namespaces: logical isolation (visibility)\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
-  },
-  {
-    "objectID": "day4.html#namespaces-example",
-    "href": "day4.html#namespaces-example",
-    "title": "CSC 453",
-    "section": "Namespaces example",
-    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
-  },
-  {
-    "objectID": "day4.html#seeing-namespaces-in-action",
-    "href": "day4.html#seeing-namespaces-in-action",
-    "title": "CSC 453",
-    "section": "Seeing namespaces in action",
-    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
-  },
-  {
-    "objectID": "day4.html#cgroups-resource-limits",
-    "href": "day4.html#cgroups-resource-limits",
-    "title": "CSC 453",
-    "section": "Cgroups: resource limits",
-    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
-  },
-  {
-    "objectID": "day4.html#seeing-cgroups-in-action",
-    "href": "day4.html#seeing-cgroups-in-action",
-    "title": "CSC 453",
-    "section": "Seeing cgroups in action",
-    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
-  },
-  {
-    "objectID": "day4.html#cgroups-vs.-namespaces",
-    "href": "day4.html#cgroups-vs.-namespaces",
-    "title": "CSC 453",
-    "section": "Cgroups vs. namespaces",
-    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
-  },
-  {
-    "objectID": "day4.html#containers-as-a-building-block",
-    "href": "day4.html#containers-as-a-building-block",
-    "title": "CSC 453",
-    "section": "Containers as a building block",
-    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) allow for policy: that can be orchestrated by combining namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
-  },
-  {
-    "objectID": "day4.html#section-1",
-    "href": "day4.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider-2",
-    "href": "day4.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
-  },
-  {
-    "objectID": "day4.html#processes-give-us-a-protection-boundary",
-    "href": "day4.html#processes-give-us-a-protection-boundary",
-    "title": "CSC 453",
-    "section": "Processes give us a protection boundary",
-    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
-  },
-  {
-    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
-    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
-    "title": "CSC 453",
-    "section": "Why do we need IPC? What are the benefits?",
-    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
-  },
-  {
-    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
-    "href": "day4.html#what-are-the-disadvantages-of-ipc",
-    "title": "CSC 453",
-    "section": "What are the disadvantages of IPC?",
-    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
-  },
-  {
-    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
-    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
-    "title": "CSC 453",
-    "section": "What are the two main categories of IPC?",
-    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
-  },
-  {
-    "objectID": "day4.html#message-passing",
-    "href": "day4.html#message-passing",
-    "title": "CSC 453",
-    "section": "Message passing",
-    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
-  },
-  {
-    "objectID": "day4.html#pros-and-cons-of-message-passing",
-    "href": "day4.html#pros-and-cons-of-message-passing",
-    "title": "CSC 453",
-    "section": "Pros and cons of message passing?",
-    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
-  },
-  {
-    "objectID": "day4.html#shared-memory",
-    "href": "day4.html#shared-memory",
-    "title": "CSC 453",
-    "section": "Shared memory",
-    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
-  },
-  {
-    "objectID": "day4.html#pros-and-cons-of-shared-memory",
-    "href": "day4.html#pros-and-cons-of-shared-memory",
-    "title": "CSC 453",
-    "section": "Pros and cons of shared memory?",
-    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
-  },
-  {
-    "objectID": "day4.html#section-2",
-    "href": "day4.html#section-2",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#admin",
-    "href": "day5.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab 2 due Thursday, 11:59 PM\nExam 1 has been moved to Tuesday, April 28th"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider",
-    "href": "day5.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
-  },
-  {
-    "objectID": "day5.html#pipes-anonymous-pipes",
-    "href": "day5.html#pipes-anonymous-pipes",
-    "title": "CSC 453",
-    "section": "Pipes (anonymous pipes)",
-    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
-  },
-  {
-    "objectID": "day5.html#pipes-contd",
-    "href": "day5.html#pipes-contd",
-    "title": "CSC 453",
-    "section": "Pipes (cont’d)",
-    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
-  },
-  {
-    "objectID": "day5.html#pipe-bugs",
-    "href": "day5.html#pipe-bugs",
-    "title": "CSC 453",
-    "section": "Pipe bugs",
-    "text": "Pipe bugs\nint pipefd[2];\npipe (pipefd);\n\nif (fork () == 0)\n  exit (0);\n\nchar buffer[10];\nread (pipefd[0], buffer, sizeof (buffer));\n\nWhat will happen here?\n\nParent will block indefinitely. Since the child exits without writing anything, and the parent has not closed its own write end, the read end never sees EOF (EOF is only signaled when all write ends are closed)."
-  },
-  {
-    "objectID": "day5.html#named-pipes-also-known-as-fifos",
-    "href": "day5.html#named-pipes-also-known-as-fifos",
-    "title": "CSC 453",
-    "section": "Named pipes (also known as FIFOs)",
-    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes don’t require a parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer\nCan be used for unrelated processes to communicate"
-  },
-  {
-    "objectID": "day5.html#named-pipes-contd",
-    "href": "day5.html#named-pipes-contd",
-    "title": "CSC 453",
-    "section": "Named pipes (cont’d)",
-    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are not regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNot wise to use bidirectionally, why?"
-  },
-  {
-    "objectID": "day5.html#shared-memory-with-mmap",
-    "href": "day5.html#shared-memory-with-mmap",
-    "title": "CSC 453",
-    "section": "Shared memory with mmap",
-    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nData is accessed directly from the page cache without an extra copy into a user buffer\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
-  },
-  {
-    "objectID": "day5.html#memory-mapped-files-posix-and-system-v",
-    "href": "day5.html#memory-mapped-files-posix-and-system-v",
-    "title": "CSC 453",
-    "section": "Memory mapped files: POSIX and System V",
-    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
-  },
-  {
-    "objectID": "day5.html#posix-vs.-system-v",
-    "href": "day5.html#posix-vs.-system-v",
-    "title": "CSC 453",
-    "section": "POSIX vs. System V",
-    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
-  },
-  {
-    "objectID": "day5.html#message-passing-vs.-shared-memory",
-    "href": "day5.html#message-passing-vs.-shared-memory",
-    "title": "CSC 453",
-    "section": "Message passing vs. shared memory",
-    "text": "Message passing vs. shared memory\n\n\nA camera captures frames at 30fps and a separate process runs AI inference on each frame. Which IPC mechanism would you use? What happens if inference is slower than capture?\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”\n\n\nShared memory is the right answer here — here’s why:\n\nEach frame is large (e.g., 1080p = ~6MB uncompressed). Copying that through the kernel on every frame via message passing adds up fast: at 30fps that’s 180MB/s of unnecessary kernel copies.\nWith shared memory, the camera process writes the frame into a shared buffer and signals the inference process — no copy needed.\n\nWhat happens when inference is slower than capture: - With a pipe/message queue: frames queue up. The buffer fills, writes block, and eventually the camera process stalls — you drop frames at the source. - With shared memory + a ring buffer: the writer can overwrite old frames. You still drop frames, but the camera keeps running and the inference process always gets the most recent frame — often the right tradeoff for real-time systems (stale data is worse than no data).\nFollow-up questions:\n\nWho synchronizes access to the shared buffer? (Needs a mutex or semaphore — the OS doesn’t help here.)\nWhat if you need the inference results sent back? (Probably message passing for the small result, shared memory for the frame data.)\nWhat changes if the camera and inference run on different machines? (Shared memory is off the table; forced into message passing over a network.)"
-  },
-  {
-    "objectID": "day5.html#demo",
-    "href": "day5.html#demo",
-    "title": "CSC 453",
-    "section": "Demo",
-    "text": "Demo"
-  },
-  {
-    "objectID": "day5.html#section",
-    "href": "day5.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider-1",
-    "href": "day5.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the differences / tradeoffs between preemptive and non-preemptive scheduling algorithms?\nWhat are the metrics we can attempt to optimize scheduling for a given scenario?"
-  },
-  {
-    "objectID": "day5.html#preemptive-vs.-non-preemptive-scheduling",
-    "href": "day5.html#preemptive-vs.-non-preemptive-scheduling",
-    "title": "CSC 453",
-    "section": "Preemptive vs. non-preemptive scheduling",
-    "text": "Preemptive vs. non-preemptive scheduling\n\nNon-Preemptive: The scheduler only makes scheduling decisions when a process voluntarily gives up the CPU (e.g., by blocking on I/O, completing, or explicitly yielding).\nPreemptive: The scheduler can interrupt a running process and move it to the ready queue at any time (based on time slices, priority changes, etc.), even while it’s actively executing.\nNon-preemptive is easier to implement, but\n\n… doesn’t support multiprogramming very well\n\nPreemptive can be complicated: correctness, utilization, flexibility\n\nSay a process P is preempted while in the middle of inserting an element in a data structure that another process (which is chosen by the scheduler) is going to process"
-  },
-  {
-    "objectID": "day5.html#scheduling-metrics",
-    "href": "day5.html#scheduling-metrics",
-    "title": "CSC 453",
-    "section": "Scheduling metrics",
-    "text": "Scheduling metrics\n\nCPU utilization: keep the CPU as busy as possible\nThroughput: # of processes that complete their execution per time unit\nTurnaround time: amount of time to execute a particular process\nWaiting time: amount of time a process has been waiting in the ready queue\nResponse time: amount of time it takes from when a request was submitted until the first response is produced."
-  },
-  {
-    "objectID": "day5.html#scheduling-scenarios",
-    "href": "day5.html#scheduling-scenarios",
-    "title": "CSC 453",
-    "section": "Scheduling scenarios",
-    "text": "Scheduling scenarios\nWhich metric would you optimize for these situations?\n\n\n\nYou run a data center that charges based on jobs completed\n\nMax throughput: maximize the number of jobs processed per unit time\n\nYou run GeForce Now\n\nMin response time: user experience is the main concern\n\nYou run Github Actions or Travis CI\n\nMin turnaround time: developers need feedback quickly\n\nYou run a supercomputing center\n\nMaximize CPU usage: this stuff is expensive, use it efficiently\n\n\n\n\n\n\nCPU utilization\nThroughput\nTurnaround time\nWaiting time\nResponse time"
-  },
-  {
-    "objectID": "day5.html#example-scheduling-a-911-system",
-    "href": "day5.html#example-scheduling-a-911-system",
-    "title": "CSC 453",
-    "section": "Example: Scheduling a 911 system",
-    "text": "Example: Scheduling a 911 system\nYou’re designing a scheduler for a 911 emergency dispatch system. Which metric matters most? Are there any metrics from the list that would be actively harmful to optimize for?\n\nResponse time is the critical metric — a dispatcher needs to see and act on an incoming call immediately. Any delay between a call arriving and the dispatcher’s screen updating is unacceptable.\nWhat’s actively harmful to optimize for:\n\nThroughput: maximizing calls handled per unit time could cause the scheduler to deprioritize long-running dispatch sessions (active incidents) in favor of shorter ones — exactly backwards.\nCPU utilization: keeping the CPU busy is irrelevant and potentially dangerous. If a high-priority dispatch process needs to run, the CPU should be idle rather than burning cycles on something else.\nTurnaround time: this measures total time from start to finish of a process, which doesn’t map well onto an always-on system handling continuous events.\n\nNo single metric is universally correct — the right metric depends entirely on what the system is for. Note: real safety-critical systems often use priority scheduling with hard real-time guarantees, not the algorithms we’re studying (which are designed for general-purpose throughput/fairness)."
-  },
-  {
-    "objectID": "day5.html#what-does-the-os-scheduler-know-about-a-process",
-    "href": "day5.html#what-does-the-os-scheduler-know-about-a-process",
-    "title": "CSC 453",
-    "section": "What does the OS scheduler know about a process?",
-    "text": "What does the OS scheduler know about a process?\n\nProcess characteristics that we’d like to know in order to achieve our goals\n\nProcessing Time (Burst Time)\nI/O Requirements\nPriority\nAge\nDependencies\n\nThe scheduler knows very little of the above\nIn many cases we are hoping to predict the future. Easy, right?"
-  },
-  {
-    "objectID": "day5.html#section-1",
-    "href": "day5.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider-2",
-    "href": "day5.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do FCFS, SJF, and SRTF compare in terms of tradeoffs between waiting time and response time?\nWhy does SJF require predicting future CPU bursts, and how can we estimate them?\nWhat is starvation in the context of scheduling, and how can we prevent it?"
-  },
-  {
-    "objectID": "day5.html#batch-scheduling-fcfs",
-    "href": "day5.html#batch-scheduling-fcfs",
-    "title": "CSC 453",
-    "section": "Batch scheduling: FCFS",
-    "text": "Batch scheduling: FCFS\n\n\n\nFirst-Come, First-Served (FCFS)\nNon-preemptive\nPros:\n\nEasy to understand, easy to implement\n\nCons?\n\nWaiting time & turnaround time have high variance\nExample: 1 long CPU-bound process and many I/O bound processes\n\nConvoy effect"
-  },
-  {
-    "objectID": "day5.html#fcfs-example",
-    "href": "day5.html#fcfs-example",
-    "title": "CSC 453",
-    "section": "FCFS example",
-    "text": "FCFS example\n\n\n\nCalculate the average waiting time:\nOrder: P1, P2, P3 \nWaiting time P1 = 0; P2 = 24; P3 = 27\nAverage waiting time: \\((0 + 24 + 27)/3 = 17\\)\nOrder P2, P3, P1 \nWaiting time P1 = 6; P2 = 0; P3 = 3\nAverage waiting time: \\((6 + 0 + 3)/3 = 3\\)\n\n\n\n\nProcess Burst Time\n  P1         24\n  P2          3\n  P3          3"
-  },
-  {
-    "objectID": "day5.html#okay-fcfs-can-be-bad",
-    "href": "day5.html#okay-fcfs-can-be-bad",
-    "title": "CSC 453",
-    "section": "Okay, FCFS can be bad",
-    "text": "Okay, FCFS can be bad\nCan we think of a better algorithm to deal with the reality that jobs run for different amounts of time?"
-  },
-  {
-    "objectID": "day5.html#batch-scheduling-shortest-job-first-sjf",
-    "href": "day5.html#batch-scheduling-shortest-job-first-sjf",
-    "title": "CSC 453",
-    "section": "Batch scheduling: shortest job first (SJF)",
-    "text": "Batch scheduling: shortest job first (SJF)\n\n\n\nOrdered by length of the process’s next CPU burst\nNon-preemptive\nPros?\n\nOptimal average waiting time among non-preemptive algorithms\n\nCons?\n\nRequires knowing the future (potentially okay in some situations; examples?)\n\nScientific jobs, batch jobs\n\n\nQuestion: how do we know the length of the upcoming CPU burst?\n\nAsk the process? Estimate? How?"
-  },
-  {
-    "objectID": "day5.html#sjf-how-can-we-predict-the-future",
-    "href": "day5.html#sjf-how-can-we-predict-the-future",
-    "title": "CSC 453",
-    "section": "SJF: how can we predict the future?",
-    "text": "SJF: how can we predict the future?\n\nWe can’t trust a process to tell the truth\nWe can only estimate, how?\n\nThe past (with the hope that the process will act like it has before)\n\nExponential weighted moving average: \\[\nEWMA_t = \\alpha \\times x_t + (1 - \\alpha) \\times EWMA_{t-1}\n\\]\n\\(\\alpha = 0\\)? New measurement does not get taken into account\n\\(\\alpha = 1\\)? History does not get taken into account\n\\(\\alpha\\) is often set to .5"
-  },
-  {
-    "objectID": "day7.html#admin",
-    "href": "day7.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab due today at 11:59pm\nQuiz due Monday at 11:59pm\nExam 1 next Tuesday"
-  },
-  {
-    "objectID": "day7.html#questions-to-consider",
-    "href": "day7.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the differences between processes and threads?\nWhen are threads beneficial?\nHow are threads limited by Amdahl’s Law?"
-  },
-  {
-    "objectID": "day7.html#motivation-context-switching-is-expensive",
-    "href": "day7.html#motivation-context-switching-is-expensive",
-    "title": "CSC 453",
-    "section": "Motivation: context switching is expensive",
-    "text": "Motivation: context switching is expensive\n\nconsider the modern word processor, which concurrently:\n\naccepts user input,\nperforms auto-correct/spell checking;\nauto-detects formatting\nauto-save (nothing could be entered until save was complete);\n\nAll impossible (or at least very inconvenient) without threads."
-  },
-  {
-    "objectID": "day7.html#processes-vs-threads",
-    "href": "day7.html#processes-vs-threads",
-    "title": "CSC 453",
-    "section": "Processes vs threads",
-    "text": "Processes vs threads\n\nPotentially confusing due to overlapping terminology: we can describe both a process and a thread as running\nTerminology can be helpful for remembering the distinction:\n\nA computing process requires multiple resources: the CPU, memory, files, etc.\nA thread of execution abstracts CPU state"
-  },
-  {
-    "objectID": "day7.html#processes-vs-threads-contd",
-    "href": "day7.html#processes-vs-threads-contd",
-    "title": "CSC 453",
-    "section": "Processes vs threads (cont’d)",
-    "text": "Processes vs threads (cont’d)\n\nProcesses contain threads; threads belong to a process\n\nOnly one exception: the kernel may have threads of execution not associated with any user process\n\nThreads each have their own stack and registers\n\nWhy?\n\nA process is considered to be running when one or more of its threads are running\nDifferent operating systems use different terminology, but share common ideas"
-  },
-  {
-    "objectID": "day7.html#intra-process-communication",
-    "href": "day7.html#intra-process-communication",
-    "title": "CSC 453",
-    "section": "Intra-process communication",
-    "text": "Intra-process communication\n\nCommunication between multiple threads in a process is usually accomplished using shared memory (since they naturally share it)\n\nPotential issues?\n\nSynchronization (we’ll come back to this)\n\n\nThreads within a process also share open file handles and both static and dynamically-allocated global variables.\nThread stacks and thus thread local variables are typically private."
-  },
-  {
-    "objectID": "day7.html#why-do-we-use-threads-pros",
-    "href": "day7.html#why-do-we-use-threads-pros",
-    "title": "CSC 453",
-    "section": "Why do we use threads? Pros",
-    "text": "Why do we use threads? Pros\n\nTo support multiple activities within a single process\nResponsiveness: a process may continue to run, even if part of it is blocked (depends on thread implementation)\nResource sharing: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process’s resources (e.g. files)\nEconomy: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load\nHardware support: modern CPUs support multithreading, where threads can run in parallel"
-  },
-  {
-    "objectID": "day7.html#thread-cons",
-    "href": "day7.html#thread-cons",
-    "title": "CSC 453",
-    "section": "Thread cons",
-    "text": "Thread cons\n\nThis is hard. Burdens programmer needs to solve:\n\nDividing activities\nBalance\nData splitting\nData dependency\nTesting and debugging\n\nShare the same address space and global variable: loss of isolation. A runaway thread can wipe out other threads\nNo built-in mechanism for pre-emption, so threads should be well-behaved (unlike greedy processes)\n\\(n\\) threads see \\(1/n\\) of a single CPU; CPU-bound processes make thread moot, or detrimental"
-  },
-  {
-    "objectID": "day7.html#what-makes-more-sense-threads-or-process",
-    "href": "day7.html#what-makes-more-sense-threads-or-process",
-    "title": "CSC 453",
-    "section": "What makes more sense, threads or process?",
-    "text": "What makes more sense, threads or process?\n\nWeb server\nGUI apps\nMultimedia apps\nDB servers\nOS services"
-  },
-  {
-    "objectID": "day7.html#what-makes-more-sense-threads-or-process-1",
-    "href": "day7.html#what-makes-more-sense-threads-or-process-1",
-    "title": "CSC 453",
-    "section": "What makes more sense, threads or process?",
-    "text": "What makes more sense, threads or process?\n\nWeb server - thread (through there are many hybrid implementations)\nGUI apps - thread\nMultimedia apps - thread\nDB servers - both: postgres uses processes, MySQL is multithreaded\nOS services - process"
-  },
-  {
-    "objectID": "day7.html#side-note-fork-and-threading",
-    "href": "day7.html#side-note-fork-and-threading",
-    "title": "CSC 453",
-    "section": "Side note: fork() and threading",
-    "text": "Side note: fork() and threading\n\nWhat happens to threads when you fork()?\nShould a child inherit the threads of their parent?\nWhat happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?\nIn reality (Linux): a child process, only the calling thread is replicated."
-  },
-  {
-    "objectID": "day7.html#a-word-of-caution-amdahls-law",
-    "href": "day7.html#a-word-of-caution-amdahls-law",
-    "title": "CSC 453",
-    "section": "A word of caution: Amdahl’s Law",
-    "text": "A word of caution: Amdahl’s Law\n\nThreads are awesome, let’s parallelize everything, right?\nAmdahl’s Law identifies performance gains from adding additional cores to an application that has both serial and parallel components\n\n\\(S\\) is serial portion\n\\(N\\) processing cores \\[speedup \\le \\frac{1}{S + \\frac{(1-S)}{N}}\\]\n\nThat is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of \\(1.6 \\times\\)\nAs \\(N\\) approaches infinity, speedup approaches \\(1 / S\\)\nSerial portion has a disproportionate effect on performance"
-  },
-  {
-    "objectID": "day7.html#section",
-    "href": "day7.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day7.html#questions-to-consider-1",
-    "href": "day7.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do user threads and kernel threads relate?\nWhat are the different kernel thread models and how do they compare?\n\nWhen should you use each?"
-  },
-  {
-    "objectID": "day7.html#first-things-first",
-    "href": "day7.html#first-things-first",
-    "title": "CSC 453",
-    "section": "First things first",
-    "text": "First things first\n\nA kernel thread is the unit of execution that the OS can run on a CPU core\nA process can only make progress if at least one of its kernel threads is scheduled on a core\nCPUs run kernel threads, not processes\nThe OS scheduler only schedules kernel threads, not user threads"
-  },
-  {
-    "objectID": "day7.html#user-space-threads",
-    "href": "day7.html#user-space-threads",
-    "title": "CSC 453",
-    "section": "User space threads",
-    "text": "User space threads\n\nTotally unknown to the OS\nThread library manages thread table and scheduling\nContext switch is a function call within the process\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a pure user space thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later"
-  },
-  {
-    "objectID": "day7.html#kernel-threads",
-    "href": "day7.html#kernel-threads",
-    "title": "CSC 453",
-    "section": "Kernel threads",
-    "text": "Kernel threads\n\nThread libraries can also have kernel support (this is the common case today)\nThere is no user space runtime environment or thread table: all is managed within the kernel\nSupport for multiple cores\nAll thread interfaces are system calls handled by the kernel"
-  },
-  {
-    "objectID": "day7.html#kernel-threads-contd",
-    "href": "day7.html#kernel-threads-contd",
-    "title": "CSC 453",
-    "section": "Kernel threads (cont’d)",
-    "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (a kernel TRAP)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
-  },
-  {
-    "objectID": "day7.html#thread-design-models-many-to-one-m1",
-    "href": "day7.html#thread-design-models-many-to-one-m1",
-    "title": "CSC 453",
-    "section": "Thread design models: many-to-one (M:1)",
-    "text": "Thread design models: many-to-one (M:1)\n\nKernel threads must support user level threads. There are multiple ways to pull this off\nMany-to-one\n\nA single kernel level thread supports many user level threads\nSwitching between threads is fast (done in user level)\nNo parallelism (kernel thread is supporting only a single user thread at a time)\nIf any user thread makes an I/O blocking call, all user threads in that process are blocked\n\nWhere does this make sense?\n\nIf you need complete control over scheduling\nIf you have no kernel or minimal RTOS kernel"
-  },
-  {
-    "objectID": "day7.html#thread-models-many-to-many-mn",
-    "href": "day7.html#thread-models-many-to-many-mn",
-    "title": "CSC 453",
-    "section": "Thread models: many-to-many (M:N)",
-    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by a number of kernel threads\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\nNow you have two schedulers to deal with (user space and kernel)\ngoroutines are a notable example of M:N in reality (though they are achieved through the Go runtime and not the kernel itself)\n\nWhen to use?\n\nWhen you need maximum concurrency (thousands to millions of threads) and have custom scheduling needs"
-  },
-  {
-    "objectID": "day7.html#thread-models-one-to-one-11",
-    "href": "day7.html#thread-models-one-to-one-11",
-    "title": "CSC 453",
-    "section": "Thread models: one-to-one (1:1)",
-    "text": "Thread models: one-to-one (1:1)\n\nNumber of kernel-level threads is equal to the number of user-level threads (dominant model today)\nCan operate in parallel\nIf one blocks, others can continue\nDownsides?\n\nLose the advantage of fast switching between user threads\nAny new user thread requires kernel thread creation: expensive\nProgrammer loses scheduling control: kernel makes decisions\n\nVery popular model: Linux & Windows\n\nEasy to implement\nMost machines have multiple cores so we can support a lot of kernel threads"
-  },
-  {
-    "objectID": "day7.html#which-models-make-sense",
-    "href": "day7.html#which-models-make-sense",
-    "title": "CSC 453",
-    "section": "Which models make sense?",
-    "text": "Which models make sense?\n\nDistributed scientific computing\n\n1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way\n\nEmbedded system\n\nM:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core\n\nPrometheus (distributed monitoring system)\n\nM:N - scrapes metrics from thousands of endpoints concurrently using goroutines; the Go runtime multiplexes these onto a small pool of kernel threads, enabling massive scaling without a kernel thread per target"
-  },
-  {
-    "objectID": "day7.html#section-1",
-    "href": "day7.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day7.html#questions-to-consider-2",
-    "href": "day7.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do we actually create and manage threads in C?\nWhat happens when two threads touch the same variable?\nHow do threads coordinate without busy-waiting?\n\n\nWe’ve spent two sections on the concepts of threads - what they are, how the kernel sees them. Now we shift to the practical side: if I hand you a C compiler, how do you actually write a multithreaded program? These three questions are what the rest of this section is built around."
-  },
-  {
-    "objectID": "day7.html#posix-threads-pthreads",
-    "href": "day7.html#posix-threads-pthreads",
-    "title": "CSC 453",
-    "section": "POSIX threads (pthreads)",
-    "text": "POSIX threads (pthreads)\n\nStandard C threading API on Linux/macOS/BSD (#include &lt;pthread.h&gt;, link with -lpthread)\nBacked by 1:1 kernel threads on Linux (NPTL)\nCore primitives:\n\npthread_create / pthread_join - spawn and wait\npthread_mutex_t - mutual exclusion\npthread_cond_t - condition variables\n\n\n\nPOSIX threads - pronounced “pee-threads” - is the standard. It’s been around since the mid-90s and it’s what you get on essentially any Unix-like system. On Linux it’s implemented by NPTL, which gives you the 1:1 model we just talked about - every pthread_create is a real kernel thread. The API is small: you create/join threads, you lock mutexes, and you wait on condition variables. That’s basically it. Three primitives, and everything else is built on top."
-  },
-  {
-    "objectID": "day7.html#creating-and-joining",
-    "href": "day7.html#creating-and-joining",
-    "title": "CSC 453",
-    "section": "Creating and joining",
-    "text": "Creating and joining\n#include &lt;pthread.h&gt;\n#include &lt;stdio.h&gt;\n\nvoid *worker(void *arg) {\n    int id = *(int *)arg;\n    printf(\"hello from thread %d\\n\", id);\n    return NULL;\n}\n\nint main(void) {\n    pthread_t t1, t2;\n    int a = 1, b = 2;\n    pthread_create(&t1, NULL, worker, &a);\n    pthread_create(&t2, NULL, worker, &b);\n    pthread_join(t1, NULL);\n    pthread_join(t2, NULL);\n    return 0;\n}\n\nWalk through with the highlight steps:\n\nworker function - every pthread entry point has this signature: takes a void *, returns a void *. That’s how you pass arguments in and get results out. We cast to int * to recover the argument.\nthread handles and args - pthread_t is an opaque handle - think of it like a PID but for threads. Note we pass pointers to a and b. A common bug: passing &i from a loop counter - by the time the thread runs, i has moved on.\ncreate - this is where a new kernel thread is actually spawned. After this call returns, two threads are running. No guarantee which one runs first, or even whether the parent reaches the next line before the child finishes.\njoin - the parent blocks until each child finishes. Without join, main could return and the whole process exits while workers are mid-printf. join is also how you collect the return value - we’re passing NULL because we don’t care here."
-  },
-  {
-    "objectID": "day7.html#the-problem-shared-state",
-    "href": "day7.html#the-problem-shared-state",
-    "title": "CSC 453",
-    "section": "The problem: shared state",
-    "text": "The problem: shared state\n\nTwo threads, both running counter++ one million times\ncounter++ is not atomic - it compiles to load, add, store\nThreads can interleave between those steps and clobber each other\nResult: final value is some number less than 2,000,000, and it’s different every run\nThis is a race condition: correctness depends on timing\n\n\nThis is the motivating example for synchronization. Try it at home: spawn two threads, each does counter++ a million times. You’d expect 2,000,000. You almost never get it.\nThe key insight is that counter++ looks atomic in C but isn’t at the hardware level. It’s three instructions: load from memory into a register, add one, store back. If thread A loads, then thread B loads the same value before A stores, they both add one to the same number - and one increment is lost.\nThe really nasty part: this bug might only show up once every thousand runs. Race conditions are the worst kind of bug because they’re nondeterministic. This is why the rest of our concurrency work matters."
-  },
-  {
-    "objectID": "day7.html#mutexes-preview",
-    "href": "day7.html#mutexes-preview",
-    "title": "CSC 453",
-    "section": "Mutexes (preview)",
-    "text": "Mutexes (preview)\n\nA mutex (mutual exclusion lock) enforces that only one thread at a time is inside a critical section\npthread_mutex_lock blocks until the lock is available, then acquires it\npthread_mutex_unlock releases it so another waiter can proceed\nWe’ll dig into how these work (hardware atomics, spinlocks, futexes) in the coming weeks\n\n\nA mutex is the simplest answer to the race condition: draw a fence around the shared state and say “only one thread inside at a time.” The region inside the fence is called the critical section.\nRight now I just want you to have the mental model: lock = enter, unlock = leave. If another thread is inside, your lock call blocks until they leave. We’ll spend real time later on how this is actually implemented - it turns out to be genuinely hard, and involves CPU instructions like compare-and-swap, and a Linux-specific mechanism called futexes that lets the kernel get involved only when there’s contention."
-  },
-  {
-    "objectID": "day7.html#mutex-example",
-    "href": "day7.html#mutex-example",
-    "title": "CSC 453",
-    "section": "Mutex example",
-    "text": "Mutex example\npthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;\nlong counter = 0;\n\nvoid *bump(void *arg) {\n    for (int i = 0; i &lt; 1000000; i++) {\n        pthread_mutex_lock(&lock);\n        counter++;              // critical section\n        pthread_mutex_unlock(&lock);\n    }\n    return NULL;\n}\n\nNow the increment is safe - but threads may spend time waiting\nKeep critical sections small: lock, touch shared data, unlock\n\n\nWalk through the highlights:\n\nglobals - PTHREAD_MUTEX_INITIALIZER is a compile-time initializer for statically allocated mutexes. For dynamic allocation you’d use pthread_mutex_init. The mutex has to be shared - if each thread had its own mutex, it would defend nothing.\nlock - this line is the gate. If another thread is already inside, we block here. The kernel can put us to sleep; we don’t spin forever.\ncritical section - this is now atomic with respect to other threads that use the same lock. Note: only threads that also lock &lock respect this. A rogue thread doing counter++ without the lock still breaks everything. Locks are a convention.\nunlock - critical: don’t forget this. If you return or exit early inside the critical section without unlocking, every other thread blocks forever. This is a big source of bugs in C; RAII in C++ and defer in Go exist specifically to prevent it.\n\nTradeoff to flag: we’ve serialized part of the work. If the critical section is huge, we’ve basically made the program single-threaded. Lock small regions."
-  },
-  {
-    "objectID": "day7.html#condition-variables-preview",
-    "href": "day7.html#condition-variables-preview",
-    "title": "CSC 453",
-    "section": "Condition variables (preview)",
-    "text": "Condition variables (preview)\n\nMutexes answer “who gets in?” - condition variables answer “when should I wake up?”\nUse case: consumer thread has nothing to do until the producer puts something in the queue\nAlternative - busy-waiting (while (queue_empty()) {}) - burns CPU for nothing\nA condition variable lets a thread sleep until another thread signals that a condition may now be true\n\n\nImportant framing: mutexes and condition variables solve different problems, and they work together, not instead of each other.\nMutex: “only one of us at a time.” That’s about protecting data.\nCondition variable: “I have nothing to do right now - wake me up when something changes.” That’s about coordinating events.\nThe motivating example is a work queue. A consumer thread wants to grab the next item and process it. If the queue is empty, what should it do? Busy-waiting - spinning in a loop checking queue_empty() - works but wastes an entire CPU doing nothing useful. Worse, it can actually prevent the producer from running. Condition variables let the consumer sleep efficiently and get woken up exactly when there’s work."
-  },
-  {
-    "objectID": "day7.html#condvar-mechanics",
-    "href": "day7.html#condvar-mechanics",
-    "title": "CSC 453",
-    "section": "Condvar mechanics",
-    "text": "Condvar mechanics\n\nAlways paired with a mutex that protects the shared state being checked\npthread_cond_wait(&cv, &lock) atomically:\n\nreleases lock\nputs the thread to sleep\nre-acquires lock when woken\n\npthread_cond_signal(&cv) wakes one waiter; pthread_cond_broadcast wakes all\nAlways wait in a while loop, not if - spurious wakeups happen, and another thread may have consumed the condition first\n\n\nThe atomic release/sleep/reacquire is the whole trick. If wait just released the lock and then went to sleep as two separate steps, a signal could arrive in between and be lost - you’d sleep forever waiting for something that already happened. The API is designed to make that impossible.\nThe while loop vs if point is worth emphasizing. Two reasons to re-check the condition after waking:\n\nSpurious wakeups - POSIX explicitly allows wait to return without any signal having been sent. Don’t fight this, just code for it.\nAnother waiter beat you to it - if the producer signals and two consumers are waiting, both might wake up, but only one item exists. The first one takes it, the second one must go back to sleep.\n\nRule of thumb: never write if (!condition) wait(). Always while (!condition) wait()."
-  },
-  {
-    "objectID": "day7.html#producerconsumer-sketch",
-    "href": "day7.html#producerconsumer-sketch",
-    "title": "CSC 453",
-    "section": "Producer/consumer sketch",
-    "text": "Producer/consumer sketch\npthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;\npthread_cond_t  not_empty = PTHREAD_COND_INITIALIZER;\nqueue_t q;\n\nvoid *consumer(void *_) {\n    pthread_mutex_lock(&m);\n    while (queue_empty(&q))\n        pthread_cond_wait(&not_empty, &m);\n    item_t x = queue_pop(&q);\n    pthread_mutex_unlock(&m);\n    process(x);\n    return NULL;\n}\n\nvoid *producer(void *_) {\n    item_t x = make_item();\n    pthread_mutex_lock(&m);\n    queue_push(&q, x);\n    pthread_cond_signal(&not_empty);\n    pthread_mutex_unlock(&m);\n    return NULL;\n}\n\nWalk through the highlights:\n\nshared state - one mutex, one condvar, one queue. The condvar “belongs to” the mutex in the sense that every wait/signal on it happens while holding m.\nconsumer lock - before we can even check the queue, we need the lock. We can’t safely call queue_empty while a producer might be modifying the queue.\nwhile + cond_wait - classic pattern. Check the condition; if not satisfied, wait. When wait returns, we hold the lock again and the condition might be true - loop back and re-check.\npop and unlock - we know the queue isn’t empty because we just exited the while loop holding the lock. Pop, then release the lock before doing process(x) - no reason to hold the lock during the actual work.\nproducer lock and push - mirror image: lock, mutate the shared queue.\nsignal - notify one waiter. broadcast would wake all waiters; use it when the state change might satisfy multiple of them.\nunlock - note: we signal then unlock. Signaling while holding the lock is fine and sometimes clearer; the waiter can’t actually proceed until we release anyway.\n\nThis pattern - mutex + condvar + while-loop check - is the foundation for essentially all higher-level concurrency primitives: bounded queues, semaphores, barriers, read-write locks. If you internalize this, the rest follows."
-  },
-  {
-    "objectID": "day7.html#takeaways",
-    "href": "day7.html#takeaways",
-    "title": "CSC 453",
-    "section": "Takeaways",
-    "text": "Takeaways\n\npthreads gives you a thin, portable interface to 1:1 kernel threads\nShared memory is the blessing and the curse of threading\nMutexes guard data; condition variables coordinate events\nAfter the exam we’ll talk about what’s happening underneath these calls, and on the ways concurrent code can still go wrong (deadlock, starvation, priority inversion, …)\n\n\nMain point: you now have enough vocabulary to read and write basic multithreaded C code. What you don’t yet have is the full picture of what can go wrong. A few things we’ll get to:\n\nDeadlock - thread A holds lock 1 and wants lock 2; thread B holds lock 2 and wants lock 1. Neither can proceed.\nStarvation - a thread keeps getting passed over and never makes progress, even though nothing is technically wrong.\nPriority inversion - a low-priority thread holding a lock blocks a high-priority thread; famously almost killed the Mars Pathfinder mission.\n\nAlso: we’ll look underneath - how a mutex is actually implemented, what a futex is, what atomic instructions the CPU provides, and why memory models matter. Today’s section is the “user” view; the rest of the semester is the “implementer” view."
-  },
-  {
-    "objectID": "day7.html#section-2",
-    "href": "day7.html#section-2",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
