@@ -1,0 +1,680 @@
+---
+title: CSC 453
+subtitle: Spring 2026 - Day 8
+format:
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15
+---
+
+## Admin
+:::{.nonincremental}
+- Quiz due Monday at 11:59pm
+- Exam 1 results
+:::
+
+# Synchronization {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the requirements for a critical section synchronization solution?
+- Why do naive implementations like a simple boolean lock fail, and what must happen atomically instead?
+- What are the practical limitations of Peterson's solution, and why don't they work well on modern architectures?
+:::
+
+## Problem
+- Two processes accessing a reservation system, where the number of open seats is tracked by a counter
+  - A: Releasing Seat
+  - B: Reserving Seat
+- Counter at 10; Process A `counter++ = 11;` Process B `counter-- = 9;`
+- What could go wrong?
+  ```{.c}
+  mov 0x8049a1c, %eax
+  add $0x1, %eax
+  mov %eax, 0x8049a1c
+
+  mov 0x8049a1c, %eax
+  sub $0x1, %eax
+  mov %eax, 0x8049a1c
+  ```
+
+## Race conditions
+- If interleaved, whoever goes last wins. Either way, 11 or 9 is an incorrect value. This is a [race condition]{.alert}
+- Very common in multi-programming environments: allocating disk blocks or memory pages, writing to a file, network buffers, etc.
+- How can we solve race conditions?
+  - [Mutual Exclusion]{.alert} (one at a time) on [Critical Sections]{.alert} (the contention data/code)
+
+## Challenges we face
+- How large should a critical section be?
+- How long can a process be in a critical section
+  - What happens if they crash while within a critical section?
+- How do we implement? Who enforces entrance into critical sections?
+
+## Beware naïve implementations
+- Why not use a simple bool?
+  ```{.c}
+  bool lock = FALSE
+  do {
+    while (lock == TRUE);
+    lock = TRUE;
+    //CRITICAL SECTION
+    lock = FALSE;
+  }while(TRUE);
+  ```
+
+- This implementation requires TWO operations: a read (test) and a write (set) that must be atomic
+
+## Critical section solution requirements
+- [Mutual exclusion]{.alert}: only one process can execute at a time
+- [Progress]{.alert}: if no process is executing in its critical section and there exist some processes that wish to enter their critical section, then the selection of the process that will enter the critical section next cannot be postponed indefinitely
+  - E.g., A process cannot immediately re-enter the critical section if the other process want to
+- [Bounded waiting]{.alert}: there must be a bound on the number of times other processes are allowed to enter their critical sections after a process has requested entry and before that request is granted
+  - No assumptions on the speed or number of CPUs
+
+## Peterson's solution
+- Two processes: $P_i$ and $P_j$
+- Two shared data items: `int turn; bool flag[2];`
+  ```{.c}
+  Pis code:
+  do {
+    flag[i] = TRUE;                // I want to enter critical section
+    turn = j;                      // let Pj go first if it wants
+    while (flag[j] && turn == j);  // busy wait
+    //CRITICAL SECTION
+    flag[i] = FALSE;               // Im leaving critical section
+    //REMAINDER
+  }while(TRUE);
+  ```
+  - turn indicates whose turn it is: `turn == i` → $P_i$'s turn
+  - if `flag[i] == true` → $P_i$ is ready for the critical section
+- To enter: $P_i$ sets `flag[i] = true` and `turn = j`
+  - i.e., $P_i$ demurs to $P_j$; if they are both ready turn will get set to?
+    - Whomever runs last sets the turn to the other process
+
+## Peterson's solution (cont'd)
+```{.c}
+Pis code:
+do {
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
+  //CRITICAL SECTION
+  flag[i] = FALSE;               // Im leaving critical section
+  //REMAINDER
+}while(TRUE);
+```
+- Does this meet the three solution requirements?
+- Mutual exclusion: under what conditions can a process be in the critical section?
+  - $P_i$ only enters if `flag[j]` is false or `turn == i`
+  - Conversely, if $P_i$ and $P_j$ are in the CS, then `flag[i] == flag[j]`; this implies both $P_i$ and $P_j$ terminated their whiles at the same time; BUT, in order for this to be true, turn must be both 0 and 1 (Contradiction)
+
+## Peterson's solution (cont'd)
+```{.c}
+Pis code:
+do {
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
+  //CRITICAL SECTION
+  flag[i] = FALSE;               // Im leaving critical section
+  //REMAINDER
+}while(TRUE);
+```
+- Progress: Is there a condition where $P_i$ can't enter the CS?
+  - There is no condition under which $P_i$ cannot (eventually) enter the CS; either the other process will set `turn == i` or it is already set
+- Bounded Waiting: How long will $P_i$ wait in the best/worst case?
+  - $P_i$ will enter after *at most* one entry by $P_j$
+
+## Peterson's solution (cont'd)
+```{.c}
+Pis code:
+do {
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
+  //CRITICAL SECTION
+  flag[i] = FALSE;               // Im leaving critical section
+  //REMAINDER
+}while(TRUE);
+```
+- Do you see any issues with this solution?
+  - Limitation: Only works for two processes
+  - Modern architectures may also break this solution
+    - Processors and/or compilers can reorder reads and writes that have no dependencies
+    - Multithreaded applications could lead to issues
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Primitives {background-color="#40666e"}
+## Questions to consider
+:::{.nonincremental}
+- How do synchronization solutions compare in implementation / function?
+- Why can busy-waiting primitives cause problems like priority inversion, and how do blocking primitives help address this?
+- When would you choose a counting semaphore versus a binary semaphore or mutex, and what distinguishes them?
+:::
+
+## Hardware solutions: atomicity
+- One way: use atomic instructions (all-or-none actions)
+- Baked into modern hardware
+  - `test_and_set()`
+  - `compare_and_swap()`
+  - These both lock the memory bus (lighter weight than the olden days when we could alternatively disable interrupts)
+    - Disabling interrupts only really works on a single CPU, modern architectures make it untenable
+- Easy enough for simple operations
+- Not realistic for complex operations
+  - Ex. "atomic update of a B-tree": do we really want to bake such an instruction into the hardware? No
+
+## Does this solution meet the requirements?
+```{.c}
+bool test_and_set(bool *lock){
+  bool ret = *lock;
+  *lock = TRUE;
+  return ret;
+}
+
+lock = FALSE;
+do{
+  while(test_and_set(&lock));
+  // CRITICAL SECTION
+  lock = FALSE;
+}while(true)
+```
+- Mutual exclusion?
+  - Yes
+- Progress?
+  - Yes: when the lock is released, a waiting process will acquire it
+- Bounded waiting?
+  - No: an unlucky process could be endlessly passed over based on the scheduler's decisions
+
+## Mutex locks
+- Previous solutions are complicated and generally not used by application programmers 
+- Any solution to the critical section problem requires a lock
+  - Peterson's solution is an example (in software)
+  - `test_and_set()` / `compare_and_swap()` are hardware implementations
+- Simplest commonly used solution is [mutex]{.alert} lock
+  - Boolean variable indicating if lock is available or not
+
+## Mutex locks (cont'd)
+- Protect a critical section  by
+  - First `acquire()` a lock
+  - Then `release()` the lock
+- What's going on under the hood?
+  ```{.c}
+  void lock(lock_t *lock) {
+    while (test_and_set(&lock->flag, 1) == 1)
+    ; // spin-wait (do nothing)
+  }
+  ```
+  - `test_and_set()` or `compare_and_swap()`
+
+## Mutex locks (cont'd)
+- Calls to `acquire()` and `release()` must be [atomic]{.alert}
+- But this solution requires **busy waiting**
+  - This type of mutex is therefore often called a [spinlock]{.alert}
+- There are also mutex implementations (e.g., futex) that block to avoid busy-waiting, and some that do both
+- **Note**: mutexes are owned by the thread that locks them. *Only the thread that acquired the mutex can release it*
+
+## Spin or block?
+:::{.nonincremental}
+For each scenario, would you use a **spinlock** or a **blocking** mutex? Why?
+
+- (a) A kernel data structure protected by a lock held for ~50 CPU cycles
+- (b) A user-space cache entry lock held for ~100 µs while computing a result
+- (c) A file lock held for several seconds while the file is being edited
+- (d) A lock on a single-CPU system where only one thread can run at a time
+:::
+::: {.notes}
+Rule of thumb: **spin if the expected wait is shorter than ~2 context switches** (a context switch is roughly 1–10 µs depending on the system). Otherwise block.
+
+- (a) **Spin.** 50 cycles is ~15–25 ns — vastly cheaper than a context switch. Blocking would cost orders of magnitude more than the wait itself. This is exactly how Linux kernel spinlocks are used.
+- (b) **Block.** 100 µs is well above the context-switch break-even. While you wait, let another thread actually do work on the CPU.
+- (c) **Block** (obviously). Seconds of spinning wastes enormous CPU. You want the waiter off the CPU entirely — probably using a kernel-mediated wait queue.
+- (d) **Never spin.** On a uniprocessor, the lock holder cannot make progress while you're spinning — you're burning the very CPU cycles the holder needs to release the lock. Spinlocks only make sense when another CPU can be releasing the lock concurrently.
+
+Key insight: the break-even isn't about the lock, it's about the **expected hold time** relative to the cost of a context switch. Real systems often use **adaptive mutexes** that spin briefly, then block if the lock isn't acquired quickly.
+:::
+
+## Consequences of busy waiting
+In 1997, NASA's Mars Pathfinder started having mysterious resets on Mars. From Earth, engineers saw the system repeatedly rebooting for no obvious reason. Not ideal when your computer is 250 million km away.
+
+The cause turned out to be [priority inversion]{.alert} in the operating system.
+
+- What was happening:
+  - A low-priority task was holding a shared resource (a mutex).
+	- A high-priority task needed that resource and blocked, waiting.
+	- Meanwhile, a medium-priority task—which didn't need the resource at all—kept preempting the low-priority task.
+	- Result: the low-priority task never got CPU time to release the resource, so the high-priority task was effectively starved.
+
+- The system interpreted this long delay as a fault and triggered a watchdog reset. Over and over.
+
+## Priority inversion
+- Any ideas on how to fix?
+  - [Priority inheritance]{.alert}: low priority processes are temporarily given priorities that match those waiting on them
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+## Semaphores
+:::: {.columns}
+::: {.column width="68%" .nonincremental}
+- Synchronization tool that provides more sophisticated ways (than mutex locks)  for processes to synchronize their activities
+- Semaphore `S`: integer variable
+- Can only be accessed via two atomic operations
+  - `wait()` and `signal()`
+    - Originally called `P()` and `V()` (because, Dutch - another Dijkstra invention)
+- Do not have ownership, any thread can signal (increment) or wait (decrement)
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="30%"}
+```{.c}
+wait(S) {
+    while (S <= 0)
+       ; // busy
+    S--;
+}
+
+signal(S) {
+    S++;
+}
+```
+:::
+::::
+
+## Semaphores (cont'd)
+:::: {.columns}
+::: {.column width="68%" .nonincremental}
+- [Binary semaphore]{.alert}: integer value can range only between 0 and 1
+  - Functionally similar to a mutex, but without ownership — any thread can signal it (often when people call something a mutex it's actually a binary semaphore)
+
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="30%"}
+```{.c}
+do{
+  wait(mutex);
+  //CS
+  signal(mutex);
+}while(TRUE);
+```
+:::
+::::
+- [Counting semaphore]{.alert}: integer value can range over an unrestricted domain
+  - When would this make sense?
+    - Protect a finite set of resources rather than a single one (e.g., you have a pool of db connections that can be shared by processes)
+    - Initialize `S` to the number of resources
+    - Decrement `S` each time someone grabs a resource, increment when they release
+
+## Semaphores (cont'd)
+:::: {.columns}
+::: {.column width="68%" .nonincremental}
+- Can also be used to force synchronization
+- Consider $P_1$  and $P_2$ that with two statements $S_1$ and $S_2$ and the requirement that $S_1$ to happen before $S_2$
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="30%"}
+```{.c}
+P1:
+   S1;
+   signal(sync);
+P2:
+   wait(sync);
+   S2;
+```
+:::
+::::
+
+## Blocking semaphores
+:::: {.columns}
+::: {.column width="58%" .nonincremental}
+- We add `sleep()` and `wakeup()` to the underlying implementation
+- Call to wait, and semaphore not available, process is blocked with `sleep()` (wait state) and placed on a waiting queue
+- Blocked processes are notified of an available semaphore by the `wakeup()` operation
+  - goes from waiting to ready
+  - Able to achieve bounded wait and progress with FIFO queue
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="40%"}
+```{.c}
+wait(semaphore *S) {
+   S->value--;
+   if (S->value < 0) {
+      add process to S->list;
+      sleep();
+   }
+}
+
+signal(semaphore *S) {
+   S->value++;
+   if (S->value <= 0) {
+      remove P from S->list;
+      wakeup(P);
+   }
+}
+
+```
+:::
+::::
+
+## Mutexes vs. semaphores
+- Mutexes are generally lighter weight / faster
+- Semaphores can support multiple instances
+- Semaphores don't have the ownership limitations
+
+## Choose your primitive
+- For each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores
+- Scenario 1: You need to protect a critical section where only one thread should execute at a time, and the critical section is expected to be held for a relatively long duration.
+  - Futex
+- Scenario 2: You have a pool of database connections, and you need to limit the number of threads that can access these connections simultaneously.
+  - Counting semaphore
+
+## Choose your primitive (cont'd)
+- For each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores
+- Scenario 3: You need to increment a shared counter frequently, and the operation is very quick.
+  - Atomic instruction
+- Scenario 4: You need to protect a critical section where only one thread should execute at a time, but the critical section is expected to be held for a very short duration.
+  - Spin lock mutex
+
+## Beware: mistakes are easy to make
+-  Incorrect use of semaphore operations
+    - wrong order: `signal(mutex)` ...  `wait(mutex)`
+    - repeating: `wait(mutex)`  ...  `wait(mutex)`
+    - Omitting of `wait(mutex)` and/or `signal(mutex)`
+- Be careful
+
+## Condition variables
+- Paired with a mutex to let threads wait for a condition rather than spin
+- `x.wait()`: calling thread releases the mutex and suspends until signaled
+- `x.signal()`: wakes one waiter (if any); no effect if no waiters
+- `x.broadcast()`: wake *all* waiters — useful when multiple threads may now be able to proceed
+- Good fit for producer-consumer and any case where threads must sleep until a resource / condition is ready
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Deadlocks {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the four necessary conditions for deadlock, and why must all four be present simultaneously?
+- How can Resource Allocation Graphs help us visualize and understand when deadlock might occur?
+- Why is a cycle necessary but not sufficient for deadlock when there are multiple instances of a resource?
+:::
+
+## Deadlocks
+- If we're not careful about dependencies, we might create pathologies that lead to deadlock
+  - Like race conditions, may only happen sometimes, making them hard to identify and debug
+- Example: Three processes, three resources of the same type, each process requires two resources to make progress
+  - This can happen across a network as well, which is particularly hard to diagnose
+- Can we [detect and resolve]{.alert} these situations? Can we [prevent]{.alert} them?
+
+## Deadlock example
+- Classic example: Thread1 holds lock L1 and is waiting for lock L2. Thread2 holds L2 and is waiting for L1
+  ```
+    Thread 1: 			            Thread 2:
+    pthread_mutex_lock(L1); 		pthread_mutex_lock(L2);
+    pthread_mutex_lock(L2); 		pthread_mutex_lock(L1);
+  ```
+
+## Deadlock characteristics
+- Definition: A set of processes are deadlocked if each process in the set is waiting for an event that only another process in the set can cause.
+  - [Resource deadlock]{.alert} is the most common (and what we'll focus on)
+
+## Conditions for deadlock
+- Four necessary conditions (simultaneous):
+  - [Mutual exclusion]{.alert}: At least one resource can only be held by one process at a time; this can result in other processes waiting for that resources
+  - [Hold and wait]{.alert}: A process must be holding at least one resource while waiting for other resources (held by other processes)
+  - [No preemption]{.alert}: Resources can only be released voluntarily by a process; Resources cannot be revoked
+  - [Circular wait]{.alert}: A set of $n$ waiting process ${P_0, ..., P_n}$ such that $P_i$ is waiting for resources held by $P_{i+1 \bmod{n}}$
+- All must be met, and some imply others: e.g. Circular wait implies hold and wait.
+
+## Deadlock conditions
+- Each condition relates to a policy that may or may not be implemented
+  - Q: Can a resource be assigned to more than one process?
+  - Q: Can a process request multiple resources? Over what period of time?
+  - Q: Can resources be preempted, and how?
+
+## Deadlock modeling
+:::: {.columns}
+::: {.column width="63%" .nonincremental}
+- Resource Allocation Graphs: A directed graph, where process and resources are nodes (sometimes circles and squares respectively), and edges are resource allocations & requests
+- Graph for
+
+  ```
+  Thread 1: 		          Thread 2:
+  pthread_mutex_lock(L1);     pthread_mutex_lock(L2);
+  pthread_mutex_lock(L2);     pthread_mutex_lock(L1);
+	```
+
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="35%"}
+![](images/RAG.png)
+:::
+::::
+- Cycles in a graph indicate deadlock
+  - When resources have only one instance: A cycle is both necessary and sufficient for deadlock
+  - **If there are multiple instances: A cycle is necessary but not sufficient for a deadlock**
+
+## Is this deadlocked?
+
+
+- There is a cycle
+- But no hold and wait
+
+![](images/deadlock_rag.png)
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Handling deadlocks {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the approaches to handling deadlock? How practical is each? How do they differ in approach?
+- How does deadlock avoidance differ from deadlock prevention? What techniques do we implement for deadlock avoidance?
+- What are the trade-offs between detecting/recovering from deadlock versus preventing or avoiding it, and when is detection practical?
+:::
+
+## How should the OS handle deadlocks?
+- OS can [prevent]{.alert} deadlock: ensure deadlocks can never occur (by preventing one of the deadlock requirements from occurring)
+- OS can [avoid]{.alert} deadlock: like prevention, but given more information about a processes resource needs
+- OS can [detect]{.alert} deadlock: allow system to deadlock, detect and recover
+- OS can [do nothing]{.alert}, and let applications handle it
+  - [Ostrich Algorithm]{.alert}: head in sand; wait
+
+## Deadlock prevention
+:::{.nonincremental}
+- Remember, we just have to break one of these to prevent deadlock
+  - Mutual exclusion
+  - Hold and wait
+  - No preemption
+  - Circular wait
+:::
+
+- Any ideas?
+
+:::{.notes}
+Example Strategies:
+- Dynamic Resource Allocation: Implement algorithms that dynamically adjust resource allocation based on current system state and process priorities.
+- Timeout Mechanism: Introduce timeouts for resource requests, forcing processes to release resources if they cannot acquire all necessary resources within a certain timeframe.
+- Resource Hierarchies: Establish a hierarchy for resource allocation, ensuring that processes request resources in a predefined order to avoid circular wait conditions.
+- Predictive Analysis: Use machine learning to predict potential deadlock scenarios based on historical data and proactively adjust resource allocation.
+
+Follow-Up Questions:
+- How does your strategy address mutual exclusion?
+- Can your strategy be implemented in real-world systems? If so, how?
+- What challenges might arise when implementing your strategy?
+:::
+
+## Attacking mutual exclusion
+- No one resource can only be held by one process at a time; while some resources are preemptable (like memory, through swapping) preventing mutual exclusion is fundamentally difficult as so many resource are non-sharable: printers, files, disks, etc.
+  - Spoolers can sidestep this for some resources (e.g., a print spooler accepts jobs so no one "owns" the printer directly)
+
+## Attacking hold and wait
+- When a process requests a resource, it cannot be holding any other resources
+- A process must request **all** of its resources at one time
+- Example, treat group of lock acquisitions like a critical section and surround with a mutex
+
+  ```{.c}
+  pthread_mutex_lock(global_lock);
+  pthread_mutex_lock(L1);
+  pthread_mutex_lock(L2);
+  ...
+  pthread_mutex_unlock(global_lock);
+  ```
+- See any downsides?
+  - Must know all needed locks a priori
+  - Will likely decrease concurrency
+
+## Attacking no preemption
+- If a process is holding some resources and requests another that cannot be immediately allocated, then all resources held are released
+- Process is restarted only when it can regain its old resources plus the new
+- Or, if a process requests a resource that cannot be immediately allocated, then all resources held are preempted and added to the list of available resources
+- Downsides?
+  - Not all resources are preempt-able
+  - Starvation is possible
+
+## Attacking circular wait
+- How could you prevent by focusing on the circular wait requirement?
+- Impose a total ordering of all resource types
+  - For example, resource types R1, R2, ..., Rn have ordering R1 < R2 < ... < Rn
+  - A process that needs multiple resources must request them in increasing order of enumeration
+- Downsides?
+  - May be difficult to impose a meaningful ordering
+  - May lead to reduced concurrency
+
+## Deadlock prevention summary
+- Which approach is best?
+  - Attacking mutual exclusion is generally not feasible
+  - Attacking hold and wait is wasteful and requires prescience
+  - Attacking no preemption is difficult due to non-preemptable resources
+  - Attacking circular wait is practical but may reduce concurrency - often the best choice and [most used](https://github.com/torvalds/linux/blob/f286757b644c226b6b31779da95a4fa7ab245ef5/mm/filemap.c#L80-L126)
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+## Deadlock avoidance
+- All of the prevention techniques can be heavy-handed, reducing concurrency and overall system throughput
+- What if we had more information about process resource needs before allocation?
+  - Could we make smarter decisions about resource allocation?
+- This is the idea behind deadlock avoidance
+
+## Avoidance via resource-allocation graph
+:::: {.columns}
+::: {.column width="63%"}
+- Introduce the idea of a [claim edge]{.alert} (dashed line) from a process to a resource
+  - Indicates that the process may request that resource in the future
+- The system can maintain this graph, and only grant resources that will not create a cycle
+- Any downsides / limitations?
+  - Overhead of maintaining the graph and checking for cycles
+  - Only applicable to single instance resources
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="35%"}
+![](images/RAG_claim.png)
+:::
+::::
+
+## Deadlock avoidance in practice
+- Dijkstra's Banker's algorithm is the textbook example — each process declares its max resource needs, and requests are only granted if the resulting state is "safe." Not used in practice: overhead plus the prescience requirement
+- Resource-allocation graph with claim edges sees occasional use in constrained settings (e.g., embedded systems where max needs are predictable)
+
+## Detecting and recovering from deadlock
+- Allow deadlocks to occur, then detect and recover
+- In some cases, recovery is pretty simple. If your machine froze once per year (maybe it does?) what would you do?
+  - Reboot
+- What scenarios do you think complex detection and recovery would make sense?
+  - Systems with high availability requirements where manual intervention is costly or impractical
+    - telecommunications systems, financial transaction systems, healthcare systems
+    - critical infrastructure systems
+
+## Detection
+- Use a wait-for graph: a simplified resource-allocation graph that removes resource nodes
+  - An edge from process $P_i$ to $P_j$ indicates that $P_i$ is waiting for a resource held by $P_j$
+  - A cycle in this graph indicates a deadlock
+  - $O(n^2)$ algorithm to search for cycles (beyond the cost of maintaining the graph itself)
+  - Only applies to single instance resources
+
+## Detection (cont'd)
+![](images/waitforgraph.png)
+
+## Detection (cont'd)
+- For multiple instance resources, we can use an algorithm similar to the Banker's algorithm to detect deadlock
+- Question: How often should we run the detection algorithm?
+  - Too often: wasteful overhead
+  - Not often enough: long delays before recovery
+  - What if we run it when a process requests a resource?
+    - Could allow us to assign blame for deadlock to the requesting process
+  - Heuristically (CPU utilization, etc.)
+    - Less overhead, but harder to assign blame
+
+## Recovery options
+- Process termination
+  - Abort all deadlocked processes (brute force)
+  - Abort one process at a time until deadlock is resolved
+    - How to choose which process to abort?
+      - Priority, time running, resources used, etc.
+- Resource preemption
+  - Temporarily take resources away from some processes and give to others until deadlock is resolved
+  - Highly dependent on the resource type
+  - Rollback problem - processes may need to be rolled back to a safe state before resources can be reallocated
+  - Starvation problem - same victims may be chosen repeatedly
+
+## Handling deadlocks summary
+- When to use which technique?
+  - Prevention: when you can afford to limit concurrency and throughput for simplicity
+  - Avoidance: when you have good information about process resource needs and can afford the overhead
+  - Detection and recovery: when deadlocks are rare and the overhead of prevention/avoidance is unjustified
+  - Do nothing: when deadlocks are extremely rare or tolerable and can be handled at the application level
+- Depends on **contention**: if resources are highly contended, prevention/avoidance may be necessary to maintain performance
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
