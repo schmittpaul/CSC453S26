@@ -473,7 +473,7 @@
     "href": "day8.html#critical-section-solution-requirements",
     "title": "CSC 453",
     "section": "Critical section solution requirements",
-    "text": "Critical section solution requirements\n\nMutual exclusion: only one process can execute at a time\nProgress: if no process is executing in its critical section and there exist some processes that wish to enter their critical section, then the selection of the process that will enter the critical section next cannot be postponed indefinitely\n\nE.g., A process cannot immediately re-enter the critical section if the other process want to\n\nBounded waiting: there must be a bound on the number of times other processes are allowed to enter their critical sections after a process has requested entry and before that request is granted\n\nNo assumptions on the speed or number of CPUs"
+    "text": "Critical section solution requirements\n\nMutual exclusion: only one process can execute at a time\nProgress: if no process is executing in its critical section and there exist some processes that wish to enter their critical section, then the selection of the process that will enter the critical section next cannot be postponed indefinitely\n\nE.g., a process in its remainder section (not contending) cannot block another process from entering\n\nBounded waiting: there must be a bound on the number of times other processes are allowed to enter their critical sections after a process has requested entry and before that request is granted\n\nE.g., a process cannot immediately re-enter the critical section if another process wants to\nNo assumptions on the speed or number of CPUs"
   },
   {
     "objectID": "day8.html#petersons-solution",
@@ -560,11 +560,25 @@
     "text": "Spin or block?\nFor each scenario, would you use a spinlock or a blocking mutex? Why?\n\n\nA kernel data structure protected by a lock held for ~50 CPU cycles\n\n\nA user-space cache entry lock held for ~100 µs while computing a result\n\n\nA file lock held for several seconds while the file is being edited\n\n\nA lock on a single-CPU system where only one thread can run at a time\n\n\n\nRule of thumb: spin if the expected wait is shorter than ~2 context switches (a context switch is roughly 1–10 µs depending on the system). Otherwise block.\n\n\nSpin. 50 cycles is ~15–25 ns — vastly cheaper than a context switch. Blocking would cost orders of magnitude more than the wait itself. This is exactly how Linux kernel spinlocks are used.\n\n\nBlock. 100 µs is well above the context-switch break-even. While you wait, let another thread actually do work on the CPU.\n\n\nBlock (obviously). Seconds of spinning wastes enormous CPU. You want the waiter off the CPU entirely — probably using a kernel-mediated wait queue.\n\n\nNever spin. On a uniprocessor, the lock holder cannot make progress while you’re spinning — you’re burning the very CPU cycles the holder needs to release the lock. Spinlocks only make sense when another CPU can be releasing the lock concurrently.\n\n\nKey insight: the break-even isn’t about the lock, it’s about the expected hold time relative to the cost of a context switch. Real systems often use adaptive mutexes that spin briefly, then block if the lock isn’t acquired quickly."
   },
   {
-    "objectID": "day8.html#consequences-of-busy-waiting",
-    "href": "day8.html#consequences-of-busy-waiting",
+    "objectID": "day8.html#futex-best-of-both-worlds",
+    "href": "day8.html#futex-best-of-both-worlds",
     "title": "CSC 453",
-    "section": "Consequences of busy waiting",
-    "text": "Consequences of busy waiting\nIn 1997, NASA’s Mars Pathfinder started having mysterious resets on Mars. From Earth, engineers saw the system repeatedly rebooting for no obvious reason. Not ideal when your computer is 250 million km away.\nThe cause turned out to be priority inversion in the operating system.\n\nWhat was happening:\n\nA low-priority task was holding a shared resource (a mutex).\n\nA high-priority task needed that resource and blocked, waiting.\nMeanwhile, a medium-priority task—which didn’t need the resource at all—kept preempting the low-priority task.\nResult: the low-priority task never got CPU time to release the resource, so the high-priority task was effectively starved.\n\n\nThe system interpreted this long delay as a fault and triggered a watchdog reset. Over and over."
+    "section": "Futex: best of both worlds",
+    "text": "Futex: best of both worlds\n\nReal systems don’t want to choose between spin and block — they want both\nFutex (Fast Userspace muTEX, Linux 2002) makes that possible\nKey idea: most lock acquisitions are uncontended\n\nPut the lock variable in user-space memory\nTry to grab it with a single atomic instruction (e.g., cmpxchg)\nIf you win → done. No syscall, no kernel involvement (~10 ns)\n\nOnly on contention do you call into the kernel via the futex() syscall\n\nKernel adds you to a wait queue and puts you to sleep\nReleaser, if there are waiters, calls futex() to wake one up"
+  },
+  {
+    "objectID": "day8.html#futex-contd",
+    "href": "day8.html#futex-contd",
+    "title": "CSC 453",
+    "section": "Futex (cont’d)",
+    "text": "Futex (cont’d)\n\nPays the cost of a syscall only on contention — uncontended path is pure user-space atomics\nThis is why pthread_mutex_t on Linux is cheap when uncontended — it’s built on futexes\nSame story for std::mutex in C++ and most modern language runtimes\nQuestion: why can’t you build a blocking mutex purely in user space?\n\nBlocking — taking a thread off the run queue — is a kernel operation by definition\nOnly the kernel can decide which thread runs on a CPU\nFutex is the minimum-syscall way to ask the kernel for that service"
+  },
+  {
+    "objectID": "day8.html#hidden-costs-of-locking",
+    "href": "day8.html#hidden-costs-of-locking",
+    "title": "CSC 453",
+    "section": "Hidden costs of locking",
+    "text": "Hidden costs of locking\nIn 1997, NASA’s Mars Pathfinder started having mysterious resets on Mars. From Earth, engineers saw the system repeatedly rebooting for no obvious reason. Not ideal when your computer is 250 million km away.\nThe cause turned out to be priority inversion in the operating system.\n\nWhat was happening:\n\nA low-priority task was holding a shared resource (a mutex).\n\nA high-priority task needed that resource and blocked, waiting.\nMeanwhile, a medium-priority task—which didn’t need the resource at all—kept preempting the low-priority task.\nResult: the low-priority task never got CPU time to release the resource, so the high-priority task was effectively starved.\n\n\nThe system interpreted this long delay as a fault and triggered a watchdog reset. Over and over."
   },
   {
     "objectID": "day8.html#priority-inversion",

@@ -1159,10 +1159,11 @@ margin-right: 0; }
 <li class="fragment"><span class="alert">Mutual exclusion</span>: only one process can execute at a time</li>
 <li class="fragment"><span class="alert">Progress</span>: if no process is executing in its critical section and there exist some processes that wish to enter their critical section, then the selection of the process that will enter the critical section next cannot be postponed indefinitely
 <ul>
-<li class="fragment">E.g., A process cannot immediately re-enter the critical section if the other process want to</li>
+<li class="fragment">E.g., a process in its remainder section (not contending) cannot block another process from entering</li>
 </ul></li>
 <li class="fragment"><span class="alert">Bounded waiting</span>: there must be a bound on the number of times other processes are allowed to enter their critical sections after a process has requested entry and before that request is granted
 <ul>
+<li class="fragment">E.g., a process cannot immediately re-enter the critical section if another process wants to</li>
 <li class="fragment">No assumptions on the speed or number of CPUs</li>
 </ul></li>
 </ul>
@@ -1419,8 +1420,40 @@ overflow: hidden!important;
 display:block!important;
 }</style></aside>
 </section>
-<section id="consequences-of-busy-waiting" class="slide level2">
-<h2>Consequences of busy waiting</h2>
+<section id="futex-best-of-both-worlds" class="slide level2">
+<h2>Futex: best of both worlds</h2>
+<ul>
+<li class="fragment">Real systems don’t want to <em>choose</em> between spin and block — they want both</li>
+<li class="fragment"><span class="alert">Futex</span> (<strong>F</strong>ast <strong>U</strong>serspace mu<strong>TEX</strong>, Linux 2002) makes that possible</li>
+<li class="fragment">Key idea: most lock acquisitions are <strong>uncontended</strong>
+<ul>
+<li class="fragment">Put the lock variable in <strong>user-space memory</strong></li>
+<li class="fragment">Try to grab it with a single atomic instruction (e.g., <code>cmpxchg</code>)</li>
+<li class="fragment">If you win → done. No syscall, no kernel involvement (~10 ns)</li>
+</ul></li>
+<li class="fragment">Only on <strong>contention</strong> do you call into the kernel via the <code>futex()</code> syscall
+<ul>
+<li class="fragment">Kernel adds you to a wait queue and puts you to sleep</li>
+<li class="fragment">Releaser, if there are waiters, calls <code>futex()</code> to wake one up</li>
+</ul></li>
+</ul>
+</section>
+<section id="futex-contd" class="slide level2">
+<h2>Futex (cont’d)</h2>
+<ul>
+<li class="fragment">Pays the cost of a syscall <strong>only on contention</strong> — uncontended path is pure user-space atomics</li>
+<li class="fragment">This is why <code>pthread_mutex_t</code> on Linux is cheap when uncontended — it’s built on futexes</li>
+<li class="fragment">Same story for <code>std::mutex</code> in C++ and most modern language runtimes</li>
+<li class="fragment">Question: why can’t you build a <em>blocking</em> mutex purely in user space?
+<ul>
+<li class="fragment">Blocking — taking a thread off the run queue — is a kernel operation by definition</li>
+<li class="fragment">Only the kernel can decide which thread runs on a CPU</li>
+<li class="fragment">Futex is the <strong>minimum-syscall</strong> way to ask the kernel for that service</li>
+</ul></li>
+</ul>
+</section>
+<section id="hidden-costs-of-locking" class="slide level2">
+<h2>Hidden costs of locking</h2>
 <p>In 1997, NASA’s Mars Pathfinder started having mysterious resets on Mars. From Earth, engineers saw the system repeatedly rebooting for no obvious reason. Not ideal when your computer is 250 million km away.</p>
 <p>The cause turned out to be <span class="alert">priority inversion</span> in the operating system.</p>
 <ul>
