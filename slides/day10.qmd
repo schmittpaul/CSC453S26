@@ -1,0 +1,407 @@
+---
+title: CSC 453
+subtitle: Spring 2026 - Day 10
+format:
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15
+---
+
+## Admin
+:::{.nonincremental}
+- Assignment 3 - can be done in c or python
+- Lab due Monday
+:::
+
+# Memory Fundamentals {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the requirements for memory that the OS must accomplish?
+- What abstraction should the OS provide to processes?
+- Why does a memory hierarchy exist, and what forces does it create for the OS?
+:::
+
+## Memory overview
+- Memory is required by all processes
+- What users (developers) want:
+  - Infinite space, private, fast, and cheap
+- Reality: All memory is limited, only some is fast (and $$$), others are slow (but $)
+  - Creates a [memory hierarchy]{.alert}
+  - Small, fast, expensive (registers, cache, RAM) → Large, slow, cheap (ssd, disk, tape)
+  - In order to support multiprogramming we must share and utilize memory hierarchy intelligently
+
+## Memory hierarchy
+![](images/memoryhierarchy.png)
+
+## Memory preliminaries
+- Remember: A process's code & data must both be in memory
+  - CPU must fetch both as part of its instruction-execution cycle
+- What memory can a CPU access directly?
+  - Registers, caches, RAM
+  - Therefore, any data or instruction must be in these direct access devices in order to operate on them
+- In this discussion we're focusing on RAM (caches + registers are hardware problems)
+- Memory is an array of words (width of memory), *kind of*
+
+## Memory requirements
+- What does the OS need to provide?
+- Old days?
+  - Just the OS libraries and a single process got the rest of the system memory
+- Between multiple processes? Processes and the kernel?
+  - [Transparency]{.alert}: we don't want processes to be aware of the virtualization.
+    - They need to be presented with a simple address space
+  - [Efficiency]{.alert}: memory is expensive and scarce
+    - Need to be efficient in both space and time
+  - [Protection / isolation]{.alert}: we need to ensure that processes can't access other process's address space (or the kernel's)
+
+## Memory requirements (cont'd)
+- From a process point of view how should we address things?
+  - Abstraction, we need an **address space**
+- We present an address space to processes that is their unique view of the system memory
+  - Code, Heap, Stack, etc.
+  - Process sees fake (virtual) addresses
+  - Q: We know that heap & stack grow towards one another. How does it work when we have multiple threads?
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Memory Abstraction {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How can the OS provide isolation between processes?
+- What are the trade-offs in when we bind virtual addresses to physical addresses?
+- How can hardware help the OS manage memory efficiently?
+:::
+
+## Base and bounds
+- Okay, we're going to lie to processes. How should we achieve this abstraction?
+- First approach: base and bounds (or base and limit) registers
+  - Base: smallest address; bounds: size of address space
+  - This can help with protection / isolation
+  - Where should the values be stored?
+  - The CPU needs to check for every memory access
+    - Stored in the PCB (we just added state that a context switch needs to account for)
+
+## Base and bounds (cont'd)
+- What will the OS need to keep track of?
+  - When a process is first run
+    - Need to find space for it (i.e., must be tracking free space)
+  - When a process terminates
+    - Return used memory to the free list
+    - Clean up any data structures used to manage memory
+  - On context switch?
+    - CPU only has one set of base and bounds registers
+  - When OS wants to relocate a process
+    - Set new registers
+  - When a process tries to address outside of its bound?
+    - exception handlers
+
+## Base and bounds (cont'd)
+- Base and bounds is simple, but has some issues:
+  - [External fragmentation]{.alert}: over time, as processes are loaded and unloaded, we can end up with slivers of memory that are not usable for new processes
+  - [Relocation is expensive]{.alert}: moving a process in memory requires copying all of its data
+- To address these issues, we can use more sophisticated memory management techniques, such as paging and segmentation
+
+## Memory address binding
+- When does the OS bind virtual addresses to physical addresses?
+  - [Compile time]{.alert}: if we know where the process will be loaded, we can bind addresses at compile time
+    - Not flexible
+    - if you need to change anything, you need to recompile
+  - [Load time]{.alert}: we can bind addresses when the process is loaded into memory
+    - More flexible, but still not ideal
+    - If you need to move the process, you need to reload it
+  - [Runtime]{.alert}: we can bind addresses during execution, which allows for maximum flexibility and is the most common approach
+    - Requires some help
+
+## Runtime address binding
+- To support runtime address binding, we need to use a [memory management unit (MMU)]{.alert}
+  - Hardware component that translates virtual addresses to physical addresses on-the-fly
+  - Can also provide protection by checking access rights and ensuring that processes cannot access memory outside of their allocated space
+- The OS needs to maintain a data structure (e.g., page table) that the MMU can use for translation
+- This allows processes to have a uniform address space (e.g., starting at 0 and going to "max")
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Memory Optimizations {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How can we reduce memory footprint without limiting functionality?
+- What are the benefits and challenges of sharing code across processes?
+- What are the trade-offs in swapping processes to disk?
+:::
+
+## Dynamic loading
+- To further optimize memory usage, we can use dynamic loading
+  - Only load parts of a process into memory when they are needed
+    - Why would this be required?
+      - Otherwise, we'd be restricted to running processes strictly smaller than our physical memory
+  - This can be done at the function level (e.g., load a function when it's called) or at the module level (e.g., load a shared library when used)
+- Reduces the memory footprint of processes and allows for faster startup times, though it does add complexity
+- Any scenarios where this would be particularly beneficial?
+  - Good for large, infrequently used routines (e.g., error handling code) or for plugins/extensions that may not be used in every execution
+
+## Dynamic linking
+- Instead of statically linking a library at compile time, we can link it at runtime
+- Allows multiple processes to share the same library code in memory, reducing overall memory usage (we've already seen this with shared libraries in `pmap` output)
+- Allows for libraries to be updated without recompiling processes
+- However, it can introduce complexity (e.g., "DLL Hell")
+- Does require some support from the OS and the dynamic linker/loader to manage the shared libraries and ensure they are loaded correctly
+- What could go wrong here?
+  - If a required library is missing or incompatible, the process may fail to start or crash at runtime
+  - What if one process updates a shared library while another process is using it? This could lead to unpredictable behavior or crashes
+
+## Swapping
+- Swapping allows an entire process to be moved from main memory to a backing store (like disk)
+- Q: Why swap?
+  - Can run far more processes than RAM can handle
+- Q: When do we swap?
+  - When we want to run more processes than can fit into physical memory
+- Q: When swapping back in, where does the process go?
+  - Depends on the memory binding
+  - If runtime, then it can go anywhere (maximum flexibility)
+
+## Swapping caveats
+- Remember though: disk is very slow, so we must be careful and clever about who, how, and when we swap
+  - The amount of time we spend swapping is directly proportional to the amount of memory we want to swap
+  - Transfer time dominates (not context switching)
+- The state of a process matters
+  - E.g. if it's blocked on I/O, we may 1) further delay the I/O by using the disk to swap, 2) a direct I/O request may return to the wrong process
+  - Programs are growing larger, so quite expensive to swap
+    - e.g. 1GB program ~10 sec per swap to a spinning disk
+- In reality: we don't really swap entire processes; too costly and unnecessary
+  - We can swap [pages]{.alert}, we'll talk about this later
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Contiguous allocation {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do we keep track of free memory and decide where to place processes?
+- What problems arise from fragmentation, and how can we address them?
+- What are the trade-offs between different allocation strategies?
+:::
+
+## Memory allocation strategies
+- How do we find free memory for processes?
+- How do we keep track of free memory?
+- How do we decide which free block to allocate to a process?
+
+## Contiguous allocation
+- Memory is allocated in contiguous blocks
+- One approach: memory may be partitioned into *fixed-sized partitions*, each containing one process
+  - This is very simple, but inflexible
+  - A fixed number of partitions means we can only run n processes, and the size of the partitions may not match the needs of the processes
+- Another approach: *variable-sized partitions*, where we allocate exactly as much memory as a process needs
+
+## Variable partitioning
+- Any obvious problems with variable partitioning?
+  - [External fragmentation]{.alert}: over time, as processes are loaded and unloaded, we can end up with small free blocks of memory that are not usable for new processes
+- To begin, we allocate memory for processes until none fit into any of the "holes"
+- Once there is no hole that is big enough to fit a process, what do we do?
+  - Can we rearrange memory to create enough space?
+    - [Compaction]{.alert}: move processes around to create enough contiguous space for the new process
+    - This is **expensive**
+
+## Allocation strategies
+- How do we decide which hole to use for a new process?
+- [First fit]{.alert}: allocate the first hole that is big enough
+- [Best fit]{.alert}: allocate the smallest hole that is big enough
+- [Worst fit]{.alert}: allocate the largest hole
+- Downsides to these?
+  - First fit: early holes get chewed up, slowing later searches
+  - Best/worst fit: require full scan
+  - One solution: [Next fit]{.alert}: similar to first fit, but continues searching from the last allocated hole
+
+## External fragmentation
+- Ideally, we want all memory to be allocated, but
+- In reality, we're left with many holes, none of which is big enough to allocate anything into
+  - Although, combined they may be
+- All the allocation strategies above can suffer from external fragmentation
+- Generally waste 1/3 of the average process size due to external frag using first-fit or best-fit
+- One solution: compaction, but this is expensive
+
+## Segmentation
+- Previous approaches have been focused on allocating contiguous blocks of memory, but what if we could allow processes to be allocated in non-contiguous segments?
+- [Segmentation]{.alert} divides a process's address space into logical segments (e.g., code, data, stack) that can be allocated separately
+- Each segment has a base and bounds, and the OS maintains a segment table for each process that maps virtual segment numbers to physical memory locations
+- Since segments are sized to need, internal fragmentation is minimal
+- Still suffers from external fragmentation: each segment is contiguous, so over time free space gets sliced into unusable holes
+
+## Segmentation: the fundamental limit
+- Segmentation is more flexible than base-and-bounds, but each segment is still contiguous
+  - External fragmentation persists; the free-space management problem just moved from "whole processes" to "individual segments"
+- What if we eliminated the contiguity requirement entirely, even within a single region?
+  - Fixed-size chunks mean any free chunk fits any request: [no external fragmentation]{.alert}
+  - This is the idea behind paging
+- Note: IA-32 uses *both*: logical addresses pass through segmentation, then paging; we'll return to this in the real-world section
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Paging {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How does paging eliminate external fragmentation while supporting multiple processes?
+- How does the hardware (MMU) translate virtual addresses to physical addresses?
+- What information must the OS maintain to support paging?
+:::
+
+## Paging
+- Contiguous allocation schemes have many issues (particularly with finding / managing places to put processes), what should we do?
+  - Be non-contiguous!
+    - Of course this introduces many new challenges, but alas
+- To completely eliminate external fragmentation, we can use [paging]{.alert}
+  - Non-contiguous memory allocation scheme that divides memory into fixed-size blocks called pages
+  - Requires hardware support (MMU) to translate virtual addresses to physical addresses using a page table
+
+## Paging (cont'd)
+- Jargon!
+  - Physical memory is broken into fixed-sized regions: **frames**; logical memory is broken into fixed-sized regions: **pages**; backing store is also addressed as fixed-sized blocks
+- The paging system handles the mapping of pages to frames
+- Pages may be logically contiguous, whereas the backing frames and blocks are not
+- ~Typically |frames| = |pages| = |blocks|; typically between 512B-16KB (huge pages can go to 2MB or 1GB)
+  - Most common size is 4KB these days
+
+## Paging (cont'd)
+:::: {.columns}
+::: {.column width="58%"}
+- Addresses are divided into two parts: [page number]{.alert} and [page offset]{.alert}
+  - Page number is simply an index to a page
+  - Offset is for addressing within the given page
+- Recall that the process point of view is using virtual addressing
+  - This means we need to bolt address translation into this. What part of the address should we translate?
+  - Page number only. Offset remains the offset
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/page_offset.png)
+:::
+::::
+
+
+## Paging (cont'd)
+- Now we need a directory to convert between virtual page numbers and physical page frames… The [page table]{.alert}
+  - Can be any of a number of different data structures
+  - The MMU uses the page table to perform address translation on every memory access
+- Mapping is completely transparent to the user / process. OS is in control of the page table
+- Page tables are kept by OS *for each process*
+  - Where should it be stored?
+  - Pointer held in the PCB; more to deal with on context switch
+
+## Page tables
+:::: {.columns}
+::: {.column width="58%"}
+- $2^m$ is the size of the address space (in bytes), and page size is $2^n$ bytes, then the higher $m-n$ bits designate page number; $n$ low-order bits are page offset
+  - $2^4$ (this example) = 16 pages; page size $2^{12}$ = 4K
+  - 32-bit?
+    - $2^{20}$ pages (1M), 4K pages = max 4GB RAM
+  - 64-bit?
+    - We'll touch on it later, it isn't (currently) $2^{52}$
+
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/pagetable.png)
+:::
+::::
+- Using n offset bits, we can address all 4096 bytes within the page
+
+## Examples
+- A system uses a 32-bit virtual address and 8 bits are used for the offset within a page. How many pages? Size of each page? Total size?
+  - $2^{24}$ pages (~16M), 256 byte pages, 4GB total
+- Virtual address is 24 bits long. If 10 bits used for the page index.
+  - $2^{10}$ = 1024 pages, $2^{14}$ = 16KB pages, 16MB total size
+- A system has 256 pages and each page is 8 KB.
+  - 8 bits for index ($2^8$ = 256), 13 bits for offset ($2^{13}$ = 8KB), 21 bit total space = $2^{21}$ = 2MB
+- A system uses a 36-bit virtual address. If the page size is 4 KB
+  - $2^{24}$ pages (16M), 12-bit offset, ~64GB total
+
+## Page tables (cont'd)
+- Page Size
+  - Depends greatly on system usage
+  - Smaller provides granularity, but a larger page table, more overhead
+  - Larger increases throughput and minimizes disk I/O
+- How do pages affect fragmentation?
+  - **No external frag**
+  - But now we have [internal fragmentation]{.alert}; unless a process happens to use exactly some multiple of the page size
+  - On average: $1/2$ page size per process
+
+## Page table entries
+- Page table entry:  what goes into one?
+  - Page frame number (obvi)
+  - [Present/absent]{.alert} bit: is the page frame number valid?
+  - [Protection bits]{.alert}: What kinds of access are permitted
+  - [Modified/Dirty]{.alert} bit: Has this page been modified, perhaps needing to get written to disk before eviction
+  - [Referenced]{.alert} bit: Has the page been referenced; used for eviction
+  - [Caching disable]{.alert} bit: Is cache disabled for this page (for direct I/O)
+- What doesn't go into one?
+  - Backing store addresses: managed by the file system
+  - We only want things needed for address translation by hardware
+
+## Size the page table
+:::{.nonincremental}
+- Assume 4 KB pages and 4-byte page table entries. How big is a single, flat page table for...
+  1. A 32-bit address space?
+  2. A 64-bit address space?
+- 100 processes on the 32-bit machine — total memory just for page tables?
+  - What does this tell you about storing page tables in RAM?
+:::
+
+:::{.notes}
+Expected answers:
+
+- 32-bit: $2^{32}/2^{12} = 2^{20}$ entries × 4 B = **4 MB per process**
+- 64-bit: $2^{64}/2^{12} = 2^{52}$ entries × 4 B = **16 PB per process** (absurd — motivates why real 64-bit systems don't use the full 64 bits and why we need multi-level / inverted page tables)
+- 100 processes × 4 MB = **400 MB** just for page tables
+
+What this tells us about storing page tables in RAM:
+
+- 4 MB per process is already painful — it's contiguous physical memory, can't be paged out the same way (the MMU needs it to *do* paging), and most of it is empty for typical processes (sparse address space).
+- Scales with process count, not memory use. A process that touches 1 page still pays for the full 4 MB table.
+- 64-bit is impossible flat — the table itself wouldn't fit in any machine. Forces a smarter structure.
+- Conclusion: don't store the whole table densely. Use multi-level (only allocate the levels you need), inverted (size by physical RAM, not virtual), or hashed page tables.
+:::
+
+## Paging summary
+- Pages allow us to:
+  - Load processes at a finer granularity
+  - Not experience external fragmentation
+  - Swap at page granularity (often termed "paging" rather than "swapping")
+- But leads us to have some questions:
+  - How do I know which pages are in memory, and which are not?
+  - When I need to swap page, which go and which stay?
+  - How do I know which pages contain modified data, and I need to write to disk?
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
