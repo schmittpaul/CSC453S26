@@ -882,405 +882,6 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
-    "objectID": "day4.html#admin",
-    "href": "day4.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM\nQuiz 2 question on fork bombs…"
-  },
-  {
-    "objectID": "day4.html#scheduling-basics",
-    "href": "day4.html#scheduling-basics",
-    "title": "CSC 453",
-    "section": "Scheduling basics",
-    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider",
-    "href": "day4.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
-  },
-  {
-    "objectID": "day4.html#unix-process-apis",
-    "href": "day4.html#unix-process-apis",
-    "title": "CSC 453",
-    "section": "UNIX process APIs",
-    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
-  },
-  {
-    "objectID": "day4.html#what-happens-during-a-fork",
-    "href": "day4.html#what-happens-during-a-fork",
-    "title": "CSC 453",
-    "section": "What happens during a fork()?",
-    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
-  },
-  {
-    "objectID": "day4.html#new-fork-design",
-    "href": "day4.html#new-fork-design",
-    "title": "CSC 453",
-    "section": "New fork() design",
-    "text": "New fork() design\nYou’re designing an OS. Instead of fork() + exec(), you provide a single spawn(program) call that creates a new process running program directly. What shell features become harder or impossible to implement?\n\nThe key insight is that fork() gives the child a window of time — between fork() and exec() — where it’s a copy of the parent and can reconfigure itself before becoming the new program. spawn() skips that window entirely.\nThings that break or become much harder:\n\nI/O redirection (ls &gt; out.txt): the shell currently forks, then the child closes stdout and opens the file before calling exec(). With spawn(), there’s no moment to do this — you’d have to pass the desired file descriptors as arguments to spawn(), making the interface much more complex.\nPipes (ls | grep foo): the shell forks twice, wires the child processes together with a pipe, then execs. Same problem — no window to set up the pipe ends before execution starts.\nEnvironment manipulation (VAR=value command): the child can modify its own environment between fork() and exec() without affecting the parent. With spawn(), the caller would need to pass the full desired environment explicitly.\nulimit, chdir, nice before exec: same story — any per-process setup that should apply only to the child has to happen in that fork-exec window.\n\nThe broader point: fork() + exec() is a separation of “create a copy of me” from “become a different program,” and that gap is where all the interesting shell plumbing lives."
-  },
-  {
-    "objectID": "day4.html#process-creation",
-    "href": "day4.html#process-creation",
-    "title": "CSC 453",
-    "section": "Process creation",
-    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
-  },
-  {
-    "objectID": "day4.html#process-destruction",
-    "href": "day4.html#process-destruction",
-    "title": "CSC 453",
-    "section": "Process destruction",
-    "text": "Process destruction"
-  },
-  {
-    "objectID": "day4.html#process-destruction-contd",
-    "href": "day4.html#process-destruction-contd",
-    "title": "CSC 453",
-    "section": "Process destruction (cont’d)",
-    "text": "Process destruction (cont’d)\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
-  },
-  {
-    "objectID": "day4.html#zombies-and-orphans",
-    "href": "day4.html#zombies-and-orphans",
-    "title": "CSC 453",
-    "section": "Zombies and orphans",
-    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\n\n\n\n\n\n\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
-  },
-  {
-    "objectID": "day4.html#section",
-    "href": "day4.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider-1",
-    "href": "day4.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
-  },
-  {
-    "objectID": "day4.html#isolation-without-full-virtualization",
-    "href": "day4.html#isolation-without-full-virtualization",
-    "title": "CSC 453",
-    "section": "Isolation without full virtualization",
-    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
-  },
-  {
-    "objectID": "day4.html#namespaces-logical-isolation-visibility",
-    "href": "day4.html#namespaces-logical-isolation-visibility",
-    "title": "CSC 453",
-    "section": "Namespaces: logical isolation (visibility)",
-    "text": "Namespaces: logical isolation (visibility)\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
-  },
-  {
-    "objectID": "day4.html#namespaces-example",
-    "href": "day4.html#namespaces-example",
-    "title": "CSC 453",
-    "section": "Namespaces example",
-    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
-  },
-  {
-    "objectID": "day4.html#seeing-namespaces-in-action",
-    "href": "day4.html#seeing-namespaces-in-action",
-    "title": "CSC 453",
-    "section": "Seeing namespaces in action",
-    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
-  },
-  {
-    "objectID": "day4.html#cgroups-resource-limits",
-    "href": "day4.html#cgroups-resource-limits",
-    "title": "CSC 453",
-    "section": "Cgroups: resource limits",
-    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
-  },
-  {
-    "objectID": "day4.html#seeing-cgroups-in-action",
-    "href": "day4.html#seeing-cgroups-in-action",
-    "title": "CSC 453",
-    "section": "Seeing cgroups in action",
-    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
-  },
-  {
-    "objectID": "day4.html#cgroups-vs.-namespaces",
-    "href": "day4.html#cgroups-vs.-namespaces",
-    "title": "CSC 453",
-    "section": "Cgroups vs. namespaces",
-    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
-  },
-  {
-    "objectID": "day4.html#containers-as-a-building-block",
-    "href": "day4.html#containers-as-a-building-block",
-    "title": "CSC 453",
-    "section": "Containers as a building block",
-    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) allow for policy: that can be orchestrated by combining namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
-  },
-  {
-    "objectID": "day4.html#section-1",
-    "href": "day4.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day4.html#questions-to-consider-2",
-    "href": "day4.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
-  },
-  {
-    "objectID": "day4.html#processes-give-us-a-protection-boundary",
-    "href": "day4.html#processes-give-us-a-protection-boundary",
-    "title": "CSC 453",
-    "section": "Processes give us a protection boundary",
-    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
-  },
-  {
-    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
-    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
-    "title": "CSC 453",
-    "section": "Why do we need IPC? What are the benefits?",
-    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
-  },
-  {
-    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
-    "href": "day4.html#what-are-the-disadvantages-of-ipc",
-    "title": "CSC 453",
-    "section": "What are the disadvantages of IPC?",
-    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
-  },
-  {
-    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
-    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
-    "title": "CSC 453",
-    "section": "What are the two main categories of IPC?",
-    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
-  },
-  {
-    "objectID": "day4.html#message-passing",
-    "href": "day4.html#message-passing",
-    "title": "CSC 453",
-    "section": "Message passing",
-    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
-  },
-  {
-    "objectID": "day4.html#pros-and-cons-of-message-passing",
-    "href": "day4.html#pros-and-cons-of-message-passing",
-    "title": "CSC 453",
-    "section": "Pros and cons of message passing?",
-    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
-  },
-  {
-    "objectID": "day4.html#shared-memory",
-    "href": "day4.html#shared-memory",
-    "title": "CSC 453",
-    "section": "Shared memory",
-    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
-  },
-  {
-    "objectID": "day4.html#pros-and-cons-of-shared-memory",
-    "href": "day4.html#pros-and-cons-of-shared-memory",
-    "title": "CSC 453",
-    "section": "Pros and cons of shared memory?",
-    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
-  },
-  {
-    "objectID": "day4.html#section-2",
-    "href": "day4.html#section-2",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#admin",
-    "href": "day5.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab 2 due Thursday, 11:59 PM\nExam 1 has been moved to Tuesday, April 28th"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider",
-    "href": "day5.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
-  },
-  {
-    "objectID": "day5.html#pipes-anonymous-pipes",
-    "href": "day5.html#pipes-anonymous-pipes",
-    "title": "CSC 453",
-    "section": "Pipes (anonymous pipes)",
-    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
-  },
-  {
-    "objectID": "day5.html#pipes-contd",
-    "href": "day5.html#pipes-contd",
-    "title": "CSC 453",
-    "section": "Pipes (cont’d)",
-    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
-  },
-  {
-    "objectID": "day5.html#pipe-bugs",
-    "href": "day5.html#pipe-bugs",
-    "title": "CSC 453",
-    "section": "Pipe bugs",
-    "text": "Pipe bugs\nint pipefd[2];\npipe (pipefd);\n\nif (fork () == 0)\n  exit (0);\n\nchar buffer[10];\nread (pipefd[0], buffer, sizeof (buffer));\n\nWhat will happen here?\n\nParent will block indefinitely. Since the child exits without writing anything, and the parent has not closed its own write end, the read end never sees EOF (EOF is only signaled when all write ends are closed)."
-  },
-  {
-    "objectID": "day5.html#named-pipes-also-known-as-fifos",
-    "href": "day5.html#named-pipes-also-known-as-fifos",
-    "title": "CSC 453",
-    "section": "Named pipes (also known as FIFOs)",
-    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes don’t require a parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer\nCan be used for unrelated processes to communicate"
-  },
-  {
-    "objectID": "day5.html#named-pipes-contd",
-    "href": "day5.html#named-pipes-contd",
-    "title": "CSC 453",
-    "section": "Named pipes (cont’d)",
-    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are not regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNot wise to use bidirectionally, why?"
-  },
-  {
-    "objectID": "day5.html#shared-memory-with-mmap",
-    "href": "day5.html#shared-memory-with-mmap",
-    "title": "CSC 453",
-    "section": "Shared memory with mmap",
-    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nData is accessed directly from the page cache without an extra copy into a user buffer\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
-  },
-  {
-    "objectID": "day5.html#memory-mapped-files-posix-and-system-v",
-    "href": "day5.html#memory-mapped-files-posix-and-system-v",
-    "title": "CSC 453",
-    "section": "Memory mapped files: POSIX and System V",
-    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
-  },
-  {
-    "objectID": "day5.html#posix-vs.-system-v",
-    "href": "day5.html#posix-vs.-system-v",
-    "title": "CSC 453",
-    "section": "POSIX vs. System V",
-    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
-  },
-  {
-    "objectID": "day5.html#message-passing-vs.-shared-memory",
-    "href": "day5.html#message-passing-vs.-shared-memory",
-    "title": "CSC 453",
-    "section": "Message passing vs. shared memory",
-    "text": "Message passing vs. shared memory\n\n\nA camera captures frames at 30fps and a separate process runs AI inference on each frame. Which IPC mechanism would you use? What happens if inference is slower than capture?\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”\n\n\nShared memory is the right answer here — here’s why:\n\nEach frame is large (e.g., 1080p = ~6MB uncompressed). Copying that through the kernel on every frame via message passing adds up fast: at 30fps that’s 180MB/s of unnecessary kernel copies.\nWith shared memory, the camera process writes the frame into a shared buffer and signals the inference process — no copy needed.\n\nWhat happens when inference is slower than capture: - With a pipe/message queue: frames queue up. The buffer fills, writes block, and eventually the camera process stalls — you drop frames at the source. - With shared memory + a ring buffer: the writer can overwrite old frames. You still drop frames, but the camera keeps running and the inference process always gets the most recent frame — often the right tradeoff for real-time systems (stale data is worse than no data).\nFollow-up questions:\n\nWho synchronizes access to the shared buffer? (Needs a mutex or semaphore — the OS doesn’t help here.)\nWhat if you need the inference results sent back? (Probably message passing for the small result, shared memory for the frame data.)\nWhat changes if the camera and inference run on different machines? (Shared memory is off the table; forced into message passing over a network.)"
-  },
-  {
-    "objectID": "day5.html#demo",
-    "href": "day5.html#demo",
-    "title": "CSC 453",
-    "section": "Demo",
-    "text": "Demo"
-  },
-  {
-    "objectID": "day5.html#section",
-    "href": "day5.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider-1",
-    "href": "day5.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the differences / tradeoffs between preemptive and non-preemptive scheduling algorithms?\nWhat are the metrics we can attempt to optimize scheduling for a given scenario?"
-  },
-  {
-    "objectID": "day5.html#preemptive-vs.-non-preemptive-scheduling",
-    "href": "day5.html#preemptive-vs.-non-preemptive-scheduling",
-    "title": "CSC 453",
-    "section": "Preemptive vs. non-preemptive scheduling",
-    "text": "Preemptive vs. non-preemptive scheduling\n\nNon-Preemptive: The scheduler only makes scheduling decisions when a process voluntarily gives up the CPU (e.g., by blocking on I/O, completing, or explicitly yielding).\nPreemptive: The scheduler can interrupt a running process and move it to the ready queue at any time (based on time slices, priority changes, etc.), even while it’s actively executing.\nNon-preemptive is easier to implement, but\n\n… doesn’t support multiprogramming very well\n\nPreemptive can be complicated: correctness, utilization, flexibility\n\nSay a process P is preempted while in the middle of inserting an element in a data structure that another process (which is chosen by the scheduler) is going to process"
-  },
-  {
-    "objectID": "day5.html#scheduling-metrics",
-    "href": "day5.html#scheduling-metrics",
-    "title": "CSC 453",
-    "section": "Scheduling metrics",
-    "text": "Scheduling metrics\n\nCPU utilization: keep the CPU as busy as possible\nThroughput: # of processes that complete their execution per time unit\nTurnaround time: amount of time to execute a particular process\nWaiting time: amount of time a process has been waiting in the ready queue\nResponse time: amount of time it takes from when a request was submitted until the first response is produced."
-  },
-  {
-    "objectID": "day5.html#scheduling-scenarios",
-    "href": "day5.html#scheduling-scenarios",
-    "title": "CSC 453",
-    "section": "Scheduling scenarios",
-    "text": "Scheduling scenarios\nWhich metric would you optimize for these situations?\n\n\n\nYou run a data center that charges based on jobs completed\n\nMax throughput: maximize the number of jobs processed per unit time\n\nYou run GeForce Now\n\nMin response time: user experience is the main concern\n\nYou run Github Actions or Travis CI\n\nMin turnaround time: developers need feedback quickly\n\nYou run a supercomputing center\n\nMaximize CPU usage: this stuff is expensive, use it efficiently\n\n\n\n\n\n\nCPU utilization\nThroughput\nTurnaround time\nWaiting time\nResponse time"
-  },
-  {
-    "objectID": "day5.html#example-scheduling-a-911-system",
-    "href": "day5.html#example-scheduling-a-911-system",
-    "title": "CSC 453",
-    "section": "Example: Scheduling a 911 system",
-    "text": "Example: Scheduling a 911 system\nYou’re designing a scheduler for a 911 emergency dispatch system. Which metric matters most? Are there any metrics from the list that would be actively harmful to optimize for?\n\nResponse time is the critical metric — a dispatcher needs to see and act on an incoming call immediately. Any delay between a call arriving and the dispatcher’s screen updating is unacceptable.\nWhat’s actively harmful to optimize for:\n\nThroughput: maximizing calls handled per unit time could cause the scheduler to deprioritize long-running dispatch sessions (active incidents) in favor of shorter ones — exactly backwards.\nCPU utilization: keeping the CPU busy is irrelevant and potentially dangerous. If a high-priority dispatch process needs to run, the CPU should be idle rather than burning cycles on something else.\nTurnaround time: this measures total time from start to finish of a process, which doesn’t map well onto an always-on system handling continuous events.\n\nNo single metric is universally correct — the right metric depends entirely on what the system is for. Note: real safety-critical systems often use priority scheduling with hard real-time guarantees, not the algorithms we’re studying (which are designed for general-purpose throughput/fairness)."
-  },
-  {
-    "objectID": "day5.html#what-does-the-os-scheduler-know-about-a-process",
-    "href": "day5.html#what-does-the-os-scheduler-know-about-a-process",
-    "title": "CSC 453",
-    "section": "What does the OS scheduler know about a process?",
-    "text": "What does the OS scheduler know about a process?\n\nProcess characteristics that we’d like to know in order to achieve our goals\n\nProcessing Time (Burst Time)\nI/O Requirements\nPriority\nAge\nDependencies\n\nThe scheduler knows very little of the above\nIn many cases we are hoping to predict the future. Easy, right?"
-  },
-  {
-    "objectID": "day5.html#section-1",
-    "href": "day5.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day5.html#questions-to-consider-2",
-    "href": "day5.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do FCFS, SJF, and SRTF compare in terms of tradeoffs between waiting time and response time?\nWhy does SJF require predicting future CPU bursts, and how can we estimate them?\nWhat is starvation in the context of scheduling, and how can we prevent it?"
-  },
-  {
-    "objectID": "day5.html#batch-scheduling-fcfs",
-    "href": "day5.html#batch-scheduling-fcfs",
-    "title": "CSC 453",
-    "section": "Batch scheduling: FCFS",
-    "text": "Batch scheduling: FCFS\n\n\n\nFirst-Come, First-Served (FCFS)\nNon-preemptive\nPros:\n\nEasy to understand, easy to implement\n\nCons?\n\nWaiting time & turnaround time have high variance\nExample: 1 long CPU-bound process and many I/O bound processes\n\nConvoy effect"
-  },
-  {
-    "objectID": "day5.html#fcfs-example",
-    "href": "day5.html#fcfs-example",
-    "title": "CSC 453",
-    "section": "FCFS example",
-    "text": "FCFS example\n\n\n\nCalculate the average waiting time:\nOrder: P1, P2, P3 \nWaiting time P1 = 0; P2 = 24; P3 = 27\nAverage waiting time: \\((0 + 24 + 27)/3 = 17\\)\nOrder P2, P3, P1 \nWaiting time P1 = 6; P2 = 0; P3 = 3\nAverage waiting time: \\((6 + 0 + 3)/3 = 3\\)\n\n\n\n\nProcess Burst Time\n  P1         24\n  P2          3\n  P3          3"
-  },
-  {
-    "objectID": "day5.html#okay-fcfs-can-be-bad",
-    "href": "day5.html#okay-fcfs-can-be-bad",
-    "title": "CSC 453",
-    "section": "Okay, FCFS can be bad",
-    "text": "Okay, FCFS can be bad\nCan we think of a better algorithm to deal with the reality that jobs run for different amounts of time?"
-  },
-  {
-    "objectID": "day5.html#batch-scheduling-shortest-job-first-sjf",
-    "href": "day5.html#batch-scheduling-shortest-job-first-sjf",
-    "title": "CSC 453",
-    "section": "Batch scheduling: shortest job first (SJF)",
-    "text": "Batch scheduling: shortest job first (SJF)\n\n\n\nOrdered by length of the process’s next CPU burst\nNon-preemptive\nPros?\n\nOptimal average waiting time among non-preemptive algorithms\n\nCons?\n\nRequires knowing the future (potentially okay in some situations; examples?)\n\nScientific jobs, batch jobs\n\n\nQuestion: how do we know the length of the upcoming CPU burst?\n\nAsk the process? Estimate? How?"
-  },
-  {
-    "objectID": "day5.html#sjf-how-can-we-predict-the-future",
-    "href": "day5.html#sjf-how-can-we-predict-the-future",
-    "title": "CSC 453",
-    "section": "SJF: how can we predict the future?",
-    "text": "SJF: how can we predict the future?\n\nWe can’t trust a process to tell the truth\nWe can only estimate, how?\n\nThe past (with the hope that the process will act like it has before)\n\nExponential weighted moving average: \\[\nEWMA_t = \\alpha \\times x_t + (1 - \\alpha) \\times EWMA_{t-1}\n\\]\n\\(\\alpha = 0\\)? New measurement does not get taken into account\n\\(\\alpha = 1\\)? History does not get taken into account\n\\(\\alpha\\) is often set to .5"
-  },
-  {
     "objectID": "day7.html#admin",
     "href": "day7.html#admin",
     "title": "CSC 453",
@@ -1514,6 +1115,699 @@
   {
     "objectID": "day7.html#section-2",
     "href": "day7.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#admin",
+    "href": "day5.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab 2 due Thursday, 11:59 PM\nExam 1 has been moved to Tuesday, April 28th"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider",
+    "href": "day5.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
+  },
+  {
+    "objectID": "day5.html#pipes-anonymous-pipes",
+    "href": "day5.html#pipes-anonymous-pipes",
+    "title": "CSC 453",
+    "section": "Pipes (anonymous pipes)",
+    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
+  },
+  {
+    "objectID": "day5.html#pipes-contd",
+    "href": "day5.html#pipes-contd",
+    "title": "CSC 453",
+    "section": "Pipes (cont’d)",
+    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
+  },
+  {
+    "objectID": "day5.html#pipe-bugs",
+    "href": "day5.html#pipe-bugs",
+    "title": "CSC 453",
+    "section": "Pipe bugs",
+    "text": "Pipe bugs\nint pipefd[2];\npipe (pipefd);\n\nif (fork () == 0)\n  exit (0);\n\nchar buffer[10];\nread (pipefd[0], buffer, sizeof (buffer));\n\nWhat will happen here?\n\nParent will block indefinitely. Since the child exits without writing anything, and the parent has not closed its own write end, the read end never sees EOF (EOF is only signaled when all write ends are closed)."
+  },
+  {
+    "objectID": "day5.html#named-pipes-also-known-as-fifos",
+    "href": "day5.html#named-pipes-also-known-as-fifos",
+    "title": "CSC 453",
+    "section": "Named pipes (also known as FIFOs)",
+    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes don’t require a parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer\nCan be used for unrelated processes to communicate"
+  },
+  {
+    "objectID": "day5.html#named-pipes-contd",
+    "href": "day5.html#named-pipes-contd",
+    "title": "CSC 453",
+    "section": "Named pipes (cont’d)",
+    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are not regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNot wise to use bidirectionally, why?"
+  },
+  {
+    "objectID": "day5.html#shared-memory-with-mmap",
+    "href": "day5.html#shared-memory-with-mmap",
+    "title": "CSC 453",
+    "section": "Shared memory with mmap",
+    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nData is accessed directly from the page cache without an extra copy into a user buffer\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
+  },
+  {
+    "objectID": "day5.html#memory-mapped-files-posix-and-system-v",
+    "href": "day5.html#memory-mapped-files-posix-and-system-v",
+    "title": "CSC 453",
+    "section": "Memory mapped files: POSIX and System V",
+    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
+  },
+  {
+    "objectID": "day5.html#posix-vs.-system-v",
+    "href": "day5.html#posix-vs.-system-v",
+    "title": "CSC 453",
+    "section": "POSIX vs. System V",
+    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
+  },
+  {
+    "objectID": "day5.html#message-passing-vs.-shared-memory",
+    "href": "day5.html#message-passing-vs.-shared-memory",
+    "title": "CSC 453",
+    "section": "Message passing vs. shared memory",
+    "text": "Message passing vs. shared memory\n\n\nA camera captures frames at 30fps and a separate process runs AI inference on each frame. Which IPC mechanism would you use? What happens if inference is slower than capture?\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”\n\n\nShared memory is the right answer here — here’s why:\n\nEach frame is large (e.g., 1080p = ~6MB uncompressed). Copying that through the kernel on every frame via message passing adds up fast: at 30fps that’s 180MB/s of unnecessary kernel copies.\nWith shared memory, the camera process writes the frame into a shared buffer and signals the inference process — no copy needed.\n\nWhat happens when inference is slower than capture: - With a pipe/message queue: frames queue up. The buffer fills, writes block, and eventually the camera process stalls — you drop frames at the source. - With shared memory + a ring buffer: the writer can overwrite old frames. You still drop frames, but the camera keeps running and the inference process always gets the most recent frame — often the right tradeoff for real-time systems (stale data is worse than no data).\nFollow-up questions:\n\nWho synchronizes access to the shared buffer? (Needs a mutex or semaphore — the OS doesn’t help here.)\nWhat if you need the inference results sent back? (Probably message passing for the small result, shared memory for the frame data.)\nWhat changes if the camera and inference run on different machines? (Shared memory is off the table; forced into message passing over a network.)"
+  },
+  {
+    "objectID": "day5.html#demo",
+    "href": "day5.html#demo",
+    "title": "CSC 453",
+    "section": "Demo",
+    "text": "Demo"
+  },
+  {
+    "objectID": "day5.html#section",
+    "href": "day5.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider-1",
+    "href": "day5.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the differences / tradeoffs between preemptive and non-preemptive scheduling algorithms?\nWhat are the metrics we can attempt to optimize scheduling for a given scenario?"
+  },
+  {
+    "objectID": "day5.html#preemptive-vs.-non-preemptive-scheduling",
+    "href": "day5.html#preemptive-vs.-non-preemptive-scheduling",
+    "title": "CSC 453",
+    "section": "Preemptive vs. non-preemptive scheduling",
+    "text": "Preemptive vs. non-preemptive scheduling\n\nNon-Preemptive: The scheduler only makes scheduling decisions when a process voluntarily gives up the CPU (e.g., by blocking on I/O, completing, or explicitly yielding).\nPreemptive: The scheduler can interrupt a running process and move it to the ready queue at any time (based on time slices, priority changes, etc.), even while it’s actively executing.\nNon-preemptive is easier to implement, but\n\n… doesn’t support multiprogramming very well\n\nPreemptive can be complicated: correctness, utilization, flexibility\n\nSay a process P is preempted while in the middle of inserting an element in a data structure that another process (which is chosen by the scheduler) is going to process"
+  },
+  {
+    "objectID": "day5.html#scheduling-metrics",
+    "href": "day5.html#scheduling-metrics",
+    "title": "CSC 453",
+    "section": "Scheduling metrics",
+    "text": "Scheduling metrics\n\nCPU utilization: keep the CPU as busy as possible\nThroughput: # of processes that complete their execution per time unit\nTurnaround time: amount of time to execute a particular process\nWaiting time: amount of time a process has been waiting in the ready queue\nResponse time: amount of time it takes from when a request was submitted until the first response is produced."
+  },
+  {
+    "objectID": "day5.html#scheduling-scenarios",
+    "href": "day5.html#scheduling-scenarios",
+    "title": "CSC 453",
+    "section": "Scheduling scenarios",
+    "text": "Scheduling scenarios\nWhich metric would you optimize for these situations?\n\n\n\nYou run a data center that charges based on jobs completed\n\nMax throughput: maximize the number of jobs processed per unit time\n\nYou run GeForce Now\n\nMin response time: user experience is the main concern\n\nYou run Github Actions or Travis CI\n\nMin turnaround time: developers need feedback quickly\n\nYou run a supercomputing center\n\nMaximize CPU usage: this stuff is expensive, use it efficiently\n\n\n\n\n\n\nCPU utilization\nThroughput\nTurnaround time\nWaiting time\nResponse time"
+  },
+  {
+    "objectID": "day5.html#example-scheduling-a-911-system",
+    "href": "day5.html#example-scheduling-a-911-system",
+    "title": "CSC 453",
+    "section": "Example: Scheduling a 911 system",
+    "text": "Example: Scheduling a 911 system\nYou’re designing a scheduler for a 911 emergency dispatch system. Which metric matters most? Are there any metrics from the list that would be actively harmful to optimize for?\n\nResponse time is the critical metric — a dispatcher needs to see and act on an incoming call immediately. Any delay between a call arriving and the dispatcher’s screen updating is unacceptable.\nWhat’s actively harmful to optimize for:\n\nThroughput: maximizing calls handled per unit time could cause the scheduler to deprioritize long-running dispatch sessions (active incidents) in favor of shorter ones — exactly backwards.\nCPU utilization: keeping the CPU busy is irrelevant and potentially dangerous. If a high-priority dispatch process needs to run, the CPU should be idle rather than burning cycles on something else.\nTurnaround time: this measures total time from start to finish of a process, which doesn’t map well onto an always-on system handling continuous events.\n\nNo single metric is universally correct — the right metric depends entirely on what the system is for. Note: real safety-critical systems often use priority scheduling with hard real-time guarantees, not the algorithms we’re studying (which are designed for general-purpose throughput/fairness)."
+  },
+  {
+    "objectID": "day5.html#what-does-the-os-scheduler-know-about-a-process",
+    "href": "day5.html#what-does-the-os-scheduler-know-about-a-process",
+    "title": "CSC 453",
+    "section": "What does the OS scheduler know about a process?",
+    "text": "What does the OS scheduler know about a process?\n\nProcess characteristics that we’d like to know in order to achieve our goals\n\nProcessing Time (Burst Time)\nI/O Requirements\nPriority\nAge\nDependencies\n\nThe scheduler knows very little of the above\nIn many cases we are hoping to predict the future. Easy, right?"
+  },
+  {
+    "objectID": "day5.html#section-1",
+    "href": "day5.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day5.html#questions-to-consider-2",
+    "href": "day5.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do FCFS, SJF, and SRTF compare in terms of tradeoffs between waiting time and response time?\nWhy does SJF require predicting future CPU bursts, and how can we estimate them?\nWhat is starvation in the context of scheduling, and how can we prevent it?"
+  },
+  {
+    "objectID": "day5.html#batch-scheduling-fcfs",
+    "href": "day5.html#batch-scheduling-fcfs",
+    "title": "CSC 453",
+    "section": "Batch scheduling: FCFS",
+    "text": "Batch scheduling: FCFS\n\n\n\nFirst-Come, First-Served (FCFS)\nNon-preemptive\nPros:\n\nEasy to understand, easy to implement\n\nCons?\n\nWaiting time & turnaround time have high variance\nExample: 1 long CPU-bound process and many I/O bound processes\n\nConvoy effect"
+  },
+  {
+    "objectID": "day5.html#fcfs-example",
+    "href": "day5.html#fcfs-example",
+    "title": "CSC 453",
+    "section": "FCFS example",
+    "text": "FCFS example\n\n\n\nCalculate the average waiting time:\nOrder: P1, P2, P3 \nWaiting time P1 = 0; P2 = 24; P3 = 27\nAverage waiting time: \\((0 + 24 + 27)/3 = 17\\)\nOrder P2, P3, P1 \nWaiting time P1 = 6; P2 = 0; P3 = 3\nAverage waiting time: \\((6 + 0 + 3)/3 = 3\\)\n\n\n\n\nProcess Burst Time\n  P1         24\n  P2          3\n  P3          3"
+  },
+  {
+    "objectID": "day5.html#okay-fcfs-can-be-bad",
+    "href": "day5.html#okay-fcfs-can-be-bad",
+    "title": "CSC 453",
+    "section": "Okay, FCFS can be bad",
+    "text": "Okay, FCFS can be bad\nCan we think of a better algorithm to deal with the reality that jobs run for different amounts of time?"
+  },
+  {
+    "objectID": "day5.html#batch-scheduling-shortest-job-first-sjf",
+    "href": "day5.html#batch-scheduling-shortest-job-first-sjf",
+    "title": "CSC 453",
+    "section": "Batch scheduling: shortest job first (SJF)",
+    "text": "Batch scheduling: shortest job first (SJF)\n\n\n\nOrdered by length of the process’s next CPU burst\nNon-preemptive\nPros?\n\nOptimal average waiting time among non-preemptive algorithms\n\nCons?\n\nRequires knowing the future (potentially okay in some situations; examples?)\n\nScientific jobs, batch jobs\n\n\nQuestion: how do we know the length of the upcoming CPU burst?\n\nAsk the process? Estimate? How?"
+  },
+  {
+    "objectID": "day5.html#sjf-how-can-we-predict-the-future",
+    "href": "day5.html#sjf-how-can-we-predict-the-future",
+    "title": "CSC 453",
+    "section": "SJF: how can we predict the future?",
+    "text": "SJF: how can we predict the future?\n\nWe can’t trust a process to tell the truth\nWe can only estimate, how?\n\nThe past (with the hope that the process will act like it has before)\n\nExponential weighted moving average: \\[\nEWMA_t = \\alpha \\times x_t + (1 - \\alpha) \\times EWMA_{t-1}\n\\]\n\\(\\alpha = 0\\)? New measurement does not get taken into account\n\\(\\alpha = 1\\)? History does not get taken into account\n\\(\\alpha\\) is often set to .5"
+  },
+  {
+    "objectID": "day4.html#admin",
+    "href": "day4.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nAssignment 1 due Wednesday\nLab 2 due Thursday, 11:59 PM\nQuiz 2 question on fork bombs…"
+  },
+  {
+    "objectID": "day4.html#scheduling-basics",
+    "href": "day4.html#scheduling-basics",
+    "title": "CSC 453",
+    "section": "Scheduling basics",
+    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider",
+    "href": "day4.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
+  },
+  {
+    "objectID": "day4.html#unix-process-apis",
+    "href": "day4.html#unix-process-apis",
+    "title": "CSC 453",
+    "section": "UNIX process APIs",
+    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
+  },
+  {
+    "objectID": "day4.html#what-happens-during-a-fork",
+    "href": "day4.html#what-happens-during-a-fork",
+    "title": "CSC 453",
+    "section": "What happens during a fork()?",
+    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
+  },
+  {
+    "objectID": "day4.html#new-fork-design",
+    "href": "day4.html#new-fork-design",
+    "title": "CSC 453",
+    "section": "New fork() design",
+    "text": "New fork() design\nYou’re designing an OS. Instead of fork() + exec(), you provide a single spawn(program) call that creates a new process running program directly. What shell features become harder or impossible to implement?\n\nThe key insight is that fork() gives the child a window of time — between fork() and exec() — where it’s a copy of the parent and can reconfigure itself before becoming the new program. spawn() skips that window entirely.\nThings that break or become much harder:\n\nI/O redirection (ls &gt; out.txt): the shell currently forks, then the child closes stdout and opens the file before calling exec(). With spawn(), there’s no moment to do this — you’d have to pass the desired file descriptors as arguments to spawn(), making the interface much more complex.\nPipes (ls | grep foo): the shell forks twice, wires the child processes together with a pipe, then execs. Same problem — no window to set up the pipe ends before execution starts.\nEnvironment manipulation (VAR=value command): the child can modify its own environment between fork() and exec() without affecting the parent. With spawn(), the caller would need to pass the full desired environment explicitly.\nulimit, chdir, nice before exec: same story — any per-process setup that should apply only to the child has to happen in that fork-exec window.\n\nThe broader point: fork() + exec() is a separation of “create a copy of me” from “become a different program,” and that gap is where all the interesting shell plumbing lives."
+  },
+  {
+    "objectID": "day4.html#process-creation",
+    "href": "day4.html#process-creation",
+    "title": "CSC 453",
+    "section": "Process creation",
+    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
+  },
+  {
+    "objectID": "day4.html#process-destruction",
+    "href": "day4.html#process-destruction",
+    "title": "CSC 453",
+    "section": "Process destruction",
+    "text": "Process destruction"
+  },
+  {
+    "objectID": "day4.html#process-destruction-contd",
+    "href": "day4.html#process-destruction-contd",
+    "title": "CSC 453",
+    "section": "Process destruction (cont’d)",
+    "text": "Process destruction (cont’d)\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
+  },
+  {
+    "objectID": "day4.html#zombies-and-orphans",
+    "href": "day4.html#zombies-and-orphans",
+    "title": "CSC 453",
+    "section": "Zombies and orphans",
+    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\n\n\n\n\n\n\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
+  },
+  {
+    "objectID": "day4.html#section",
+    "href": "day4.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-1",
+    "href": "day4.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
+  },
+  {
+    "objectID": "day4.html#isolation-without-full-virtualization",
+    "href": "day4.html#isolation-without-full-virtualization",
+    "title": "CSC 453",
+    "section": "Isolation without full virtualization",
+    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
+  },
+  {
+    "objectID": "day4.html#namespaces-logical-isolation-visibility",
+    "href": "day4.html#namespaces-logical-isolation-visibility",
+    "title": "CSC 453",
+    "section": "Namespaces: logical isolation (visibility)",
+    "text": "Namespaces: logical isolation (visibility)\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
+  },
+  {
+    "objectID": "day4.html#namespaces-example",
+    "href": "day4.html#namespaces-example",
+    "title": "CSC 453",
+    "section": "Namespaces example",
+    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
+  },
+  {
+    "objectID": "day4.html#seeing-namespaces-in-action",
+    "href": "day4.html#seeing-namespaces-in-action",
+    "title": "CSC 453",
+    "section": "Seeing namespaces in action",
+    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
+  },
+  {
+    "objectID": "day4.html#cgroups-resource-limits",
+    "href": "day4.html#cgroups-resource-limits",
+    "title": "CSC 453",
+    "section": "Cgroups: resource limits",
+    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
+  },
+  {
+    "objectID": "day4.html#seeing-cgroups-in-action",
+    "href": "day4.html#seeing-cgroups-in-action",
+    "title": "CSC 453",
+    "section": "Seeing cgroups in action",
+    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
+  },
+  {
+    "objectID": "day4.html#cgroups-vs.-namespaces",
+    "href": "day4.html#cgroups-vs.-namespaces",
+    "title": "CSC 453",
+    "section": "Cgroups vs. namespaces",
+    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
+  },
+  {
+    "objectID": "day4.html#containers-as-a-building-block",
+    "href": "day4.html#containers-as-a-building-block",
+    "title": "CSC 453",
+    "section": "Containers as a building block",
+    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) allow for policy: that can be orchestrated by combining namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
+  },
+  {
+    "objectID": "day4.html#section-1",
+    "href": "day4.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-2",
+    "href": "day4.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
+  },
+  {
+    "objectID": "day4.html#processes-give-us-a-protection-boundary",
+    "href": "day4.html#processes-give-us-a-protection-boundary",
+    "title": "CSC 453",
+    "section": "Processes give us a protection boundary",
+    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
+  },
+  {
+    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "title": "CSC 453",
+    "section": "Why do we need IPC? What are the benefits?",
+    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
+  },
+  {
+    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
+    "href": "day4.html#what-are-the-disadvantages-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the disadvantages of IPC?",
+    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
+  },
+  {
+    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the two main categories of IPC?",
+    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
+  },
+  {
+    "objectID": "day4.html#message-passing",
+    "href": "day4.html#message-passing",
+    "title": "CSC 453",
+    "section": "Message passing",
+    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-message-passing",
+    "href": "day4.html#pros-and-cons-of-message-passing",
+    "title": "CSC 453",
+    "section": "Pros and cons of message passing?",
+    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
+  },
+  {
+    "objectID": "day4.html#shared-memory",
+    "href": "day4.html#shared-memory",
+    "title": "CSC 453",
+    "section": "Shared memory",
+    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-shared-memory",
+    "href": "day4.html#pros-and-cons-of-shared-memory",
+    "title": "CSC 453",
+    "section": "Pros and cons of shared memory?",
+    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
+  },
+  {
+    "objectID": "day4.html#section-2",
+    "href": "day4.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day10.html#admin",
+    "href": "day10.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nAssignment 3 - can be done in c or python\nLab due Monday"
+  },
+  {
+    "objectID": "day10.html#questions-to-consider",
+    "href": "day10.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the requirements for memory that the OS must accomplish?\nWhat abstraction should the OS provide to processes?\nWhy does a memory hierarchy exist, and what forces does it create for the OS?"
+  },
+  {
+    "objectID": "day10.html#memory-overview",
+    "href": "day10.html#memory-overview",
+    "title": "CSC 453",
+    "section": "Memory overview",
+    "text": "Memory overview\n\nMemory is required by all processes\nWhat users (developers) want:\n\nInfinite space, private, fast, and cheap\n\nReality: All memory is limited, only some is fast (and $$$), others are slow (but $)\n\nCreates a memory hierarchy\nSmall, fast, expensive (registers, cache, RAM) → Large, slow, cheap (ssd, disk, tape)\nIn order to support multiprogramming we must share and utilize memory hierarchy intelligently"
+  },
+  {
+    "objectID": "day10.html#memory-hierarchy",
+    "href": "day10.html#memory-hierarchy",
+    "title": "CSC 453",
+    "section": "Memory hierarchy",
+    "text": "Memory hierarchy"
+  },
+  {
+    "objectID": "day10.html#memory-preliminaries",
+    "href": "day10.html#memory-preliminaries",
+    "title": "CSC 453",
+    "section": "Memory preliminaries",
+    "text": "Memory preliminaries\n\nRemember: A process’s code & data must both be in memory\n\nCPU must fetch both as part of its instruction-execution cycle\n\nWhat memory can a CPU access directly?\n\nRegisters, caches, RAM\nTherefore, any data or instruction must be in these direct access devices in order to operate on them\n\nIn this discussion we’re focusing on RAM (caches + registers are hardware problems)\nMemory is an array of words (width of memory), kind of"
+  },
+  {
+    "objectID": "day10.html#memory-requirements",
+    "href": "day10.html#memory-requirements",
+    "title": "CSC 453",
+    "section": "Memory requirements",
+    "text": "Memory requirements\n\nWhat does the OS need to provide?\nOld days?\n\nJust the OS libraries and a single process got the rest of the system memory\n\nBetween multiple processes? Processes and the kernel?\n\nTransparency: we don’t want processes to be aware of the virtualization.\n\nThey need to be presented with a simple address space\n\nEfficiency: memory is expensive and scarce\n\nNeed to be efficient in both space and time\n\nProtection / isolation: we need to ensure that processes can’t access other process’s address space (or the kernel’s)"
+  },
+  {
+    "objectID": "day10.html#memory-requirements-contd",
+    "href": "day10.html#memory-requirements-contd",
+    "title": "CSC 453",
+    "section": "Memory requirements (cont’d)",
+    "text": "Memory requirements (cont’d)\n\nFrom a process point of view how should we address things?\n\nAbstraction, we need an address space\n\nWe present an address space to processes that is their unique view of the system memory\n\nCode, Heap, Stack, etc.\nProcess sees fake (virtual) addresses\nQ: We know that heap & stack grow towards one another. How does it work when we have multiple threads?"
+  },
+  {
+    "objectID": "day10.html#section",
+    "href": "day10.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day10.html#questions-to-consider-1",
+    "href": "day10.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow can the OS provide isolation between processes?\nWhat are the trade-offs in when we bind virtual addresses to physical addresses?\nHow can hardware help the OS manage memory efficiently?"
+  },
+  {
+    "objectID": "day10.html#base-and-bounds",
+    "href": "day10.html#base-and-bounds",
+    "title": "CSC 453",
+    "section": "Base and bounds",
+    "text": "Base and bounds\n\nOkay, we’re going to lie to processes. How should we achieve this abstraction?\nFirst approach: base and bounds (or base and limit) registers\n\nBase: smallest address; bounds: size of address space\nThis can help with protection / isolation\nWhere should the values be stored?\nThe CPU needs to check for every memory access\n\nStored in the PCB (we just added state that a context switch needs to account for)"
+  },
+  {
+    "objectID": "day10.html#base-and-bounds-contd",
+    "href": "day10.html#base-and-bounds-contd",
+    "title": "CSC 453",
+    "section": "Base and bounds (cont’d)",
+    "text": "Base and bounds (cont’d)\n\nWhat will the OS need to keep track of?\n\nWhen a process is first run\n\nNeed to find space for it (i.e., must be tracking free space)\n\nWhen a process terminates\n\nReturn used memory to the free list\nClean up any data structures used to manage memory\n\nOn context switch?\n\nCPU only has one set of base and bounds registers\n\nWhen OS wants to relocate a process\n\nSet new registers\n\nWhen a process tries to address outside of its bound?\n\nexception handlers"
+  },
+  {
+    "objectID": "day10.html#base-and-bounds-contd-1",
+    "href": "day10.html#base-and-bounds-contd-1",
+    "title": "CSC 453",
+    "section": "Base and bounds (cont’d)",
+    "text": "Base and bounds (cont’d)\n\nBase and bounds is simple, but has some issues:\n\nExternal fragmentation: over time, as processes are loaded and unloaded, we can end up with slivers of memory that are not usable for new processes\nRelocation is expensive: moving a process in memory requires copying all of its data\n\nTo address these issues, we can use more sophisticated memory management techniques, such as paging and segmentation"
+  },
+  {
+    "objectID": "day10.html#memory-address-binding",
+    "href": "day10.html#memory-address-binding",
+    "title": "CSC 453",
+    "section": "Memory address binding",
+    "text": "Memory address binding\n\nWhen does the OS bind virtual addresses to physical addresses?\n\nCompile time: if we know where the process will be loaded, we can bind addresses at compile time\n\nNot flexible\nif you need to change anything, you need to recompile\n\nLoad time: we can bind addresses when the process is loaded into memory\n\nMore flexible, but still not ideal\nIf you need to move the process, you need to reload it\n\nRuntime: we can bind addresses during execution, which allows for maximum flexibility and is the most common approach\n\nRequires some help"
+  },
+  {
+    "objectID": "day10.html#runtime-address-binding",
+    "href": "day10.html#runtime-address-binding",
+    "title": "CSC 453",
+    "section": "Runtime address binding",
+    "text": "Runtime address binding\n\nTo support runtime address binding, we need to use a memory management unit (MMU)\n\nHardware component that translates virtual addresses to physical addresses on-the-fly\nCan also provide protection by checking access rights and ensuring that processes cannot access memory outside of their allocated space\n\nThe OS needs to maintain a data structure (e.g., page table) that the MMU can use for translation\nThis allows processes to have a uniform address space (e.g., starting at 0 and going to “max”)"
+  },
+  {
+    "objectID": "day10.html#section-1",
+    "href": "day10.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day10.html#questions-to-consider-2",
+    "href": "day10.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow can we reduce memory footprint without limiting functionality?\nWhat are the benefits and challenges of sharing code across processes?\nWhat are the trade-offs in swapping processes to disk?"
+  },
+  {
+    "objectID": "day10.html#dynamic-loading",
+    "href": "day10.html#dynamic-loading",
+    "title": "CSC 453",
+    "section": "Dynamic loading",
+    "text": "Dynamic loading\n\nTo further optimize memory usage, we can use dynamic loading\n\nOnly load parts of a process into memory when they are needed\n\nWhy would this be required?\n\nOtherwise, we’d be restricted to running processes strictly smaller than our physical memory\n\n\nThis can be done at the function level (e.g., load a function when it’s called) or at the module level (e.g., load a shared library when used)\n\nReduces the memory footprint of processes and allows for faster startup times, though it does add complexity\nAny scenarios where this would be particularly beneficial?\n\nGood for large, infrequently used routines (e.g., error handling code) or for plugins/extensions that may not be used in every execution"
+  },
+  {
+    "objectID": "day10.html#dynamic-linking",
+    "href": "day10.html#dynamic-linking",
+    "title": "CSC 453",
+    "section": "Dynamic linking",
+    "text": "Dynamic linking\n\nInstead of statically linking a library at compile time, we can link it at runtime\nAllows multiple processes to share the same library code in memory, reducing overall memory usage (we’ve already seen this with shared libraries in pmap output)\nAllows for libraries to be updated without recompiling processes\nHowever, it can introduce complexity (e.g., “DLL Hell”)\nDoes require some support from the OS and the dynamic linker/loader to manage the shared libraries and ensure they are loaded correctly\nWhat could go wrong here?\n\nIf a required library is missing or incompatible, the process may fail to start or crash at runtime\nWhat if one process updates a shared library while another process is using it? This could lead to unpredictable behavior or crashes"
+  },
+  {
+    "objectID": "day10.html#swapping",
+    "href": "day10.html#swapping",
+    "title": "CSC 453",
+    "section": "Swapping",
+    "text": "Swapping\n\nSwapping allows an entire process to be moved from main memory to a backing store (like disk)\nQ: Why swap?\n\nCan run far more processes than RAM can handle\n\nQ: When do we swap?\n\nWhen we want to run more processes than can fit into physical memory\n\nQ: When swapping back in, where does the process go?\n\nDepends on the memory binding\nIf runtime, then it can go anywhere (maximum flexibility)"
+  },
+  {
+    "objectID": "day10.html#swapping-caveats",
+    "href": "day10.html#swapping-caveats",
+    "title": "CSC 453",
+    "section": "Swapping caveats",
+    "text": "Swapping caveats\n\nRemember though: disk is very slow, so we must be careful and clever about who, how, and when we swap\n\nThe amount of time we spend swapping is directly proportional to the amount of memory we want to swap\nTransfer time dominates (not context switching)\n\nThe state of a process matters\n\nE.g. if it’s blocked on I/O, we may 1) further delay the I/O by using the disk to swap, 2) a direct I/O request may return to the wrong process\nPrograms are growing larger, so quite expensive to swap\n\ne.g. 1GB program ~10 sec per swap to a spinning disk\n\n\nIn reality: we don’t really swap entire processes; too costly and unnecessary\n\nWe can swap pages, we’ll talk about this later"
+  },
+  {
+    "objectID": "day10.html#section-2",
+    "href": "day10.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day10.html#questions-to-consider-3",
+    "href": "day10.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do we keep track of free memory and decide where to place processes?\nWhat problems arise from fragmentation, and how can we address them?\nWhat are the trade-offs between different allocation strategies?"
+  },
+  {
+    "objectID": "day10.html#memory-allocation-strategies",
+    "href": "day10.html#memory-allocation-strategies",
+    "title": "CSC 453",
+    "section": "Memory allocation strategies",
+    "text": "Memory allocation strategies\n\nHow do we find free memory for processes?\nHow do we keep track of free memory?\nHow do we decide which free block to allocate to a process?"
+  },
+  {
+    "objectID": "day10.html#contiguous-allocation-1",
+    "href": "day10.html#contiguous-allocation-1",
+    "title": "CSC 453",
+    "section": "Contiguous allocation",
+    "text": "Contiguous allocation\n\nMemory is allocated in contiguous blocks\nOne approach: memory may be partitioned into fixed-sized partitions, each containing one process\n\nThis is very simple, but inflexible\nA fixed number of partitions means we can only run n processes, and the size of the partitions may not match the needs of the processes\n\nAnother approach: variable-sized partitions, where we allocate exactly as much memory as a process needs"
+  },
+  {
+    "objectID": "day10.html#variable-partitioning",
+    "href": "day10.html#variable-partitioning",
+    "title": "CSC 453",
+    "section": "Variable partitioning",
+    "text": "Variable partitioning\n\nAny obvious problems with variable partitioning?\n\nExternal fragmentation: over time, as processes are loaded and unloaded, we can end up with small free blocks of memory that are not usable for new processes\n\nTo begin, we allocate memory for processes until none fit into any of the “holes”\nOnce there is no hole that is big enough to fit a process, what do we do?\n\nCan we rearrange memory to create enough space?\n\nCompaction: move processes around to create enough contiguous space for the new process\nThis is expensive"
+  },
+  {
+    "objectID": "day10.html#allocation-strategies",
+    "href": "day10.html#allocation-strategies",
+    "title": "CSC 453",
+    "section": "Allocation strategies",
+    "text": "Allocation strategies\n\nHow do we decide which hole to use for a new process?\nFirst fit: allocate the first hole that is big enough\nBest fit: allocate the smallest hole that is big enough\nWorst fit: allocate the largest hole\nDownsides to these?\n\nFirst fit: early holes get chewed up, slowing later searches\nBest/worst fit: require full scan\nOne solution: Next fit: similar to first fit, but continues searching from the last allocated hole"
+  },
+  {
+    "objectID": "day10.html#external-fragmentation",
+    "href": "day10.html#external-fragmentation",
+    "title": "CSC 453",
+    "section": "External fragmentation",
+    "text": "External fragmentation\n\nIdeally, we want all memory to be allocated, but\nIn reality, we’re left with many holes, none of which is big enough to allocate anything into\n\nAlthough, combined they may be\n\nAll the allocation strategies above can suffer from external fragmentation\nGenerally waste 1/3 of the average process size due to external frag using first-fit or best-fit\nOne solution: compaction, but this is expensive"
+  },
+  {
+    "objectID": "day10.html#segmentation",
+    "href": "day10.html#segmentation",
+    "title": "CSC 453",
+    "section": "Segmentation",
+    "text": "Segmentation\n\nPrevious approaches have been focused on allocating contiguous blocks of memory, but what if we could allow processes to be allocated in non-contiguous segments?\nSegmentation divides a process’s address space into logical segments (e.g., code, data, stack) that can be allocated separately\nEach segment has a base and bounds, and the OS maintains a segment table for each process that maps virtual segment numbers to physical memory locations\nSince segments are sized to need, internal fragmentation is minimal\nStill suffers from external fragmentation: each segment is contiguous, so over time free space gets sliced into unusable holes"
+  },
+  {
+    "objectID": "day10.html#segmentation-the-fundamental-limit",
+    "href": "day10.html#segmentation-the-fundamental-limit",
+    "title": "CSC 453",
+    "section": "Segmentation: the fundamental limit",
+    "text": "Segmentation: the fundamental limit\n\nSegmentation is more flexible than base-and-bounds, but each segment is still contiguous\n\nExternal fragmentation persists; the free-space management problem just moved from “whole processes” to “individual segments”\n\nWhat if we eliminated the contiguity requirement entirely, even within a single region?\n\nFixed-size chunks mean any free chunk fits any request: no external fragmentation\nThis is the idea behind paging\n\nNote: IA-32 uses both: logical addresses pass through segmentation, then paging; we’ll return to this in the real-world section"
+  },
+  {
+    "objectID": "day10.html#section-3",
+    "href": "day10.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day10.html#questions-to-consider-4",
+    "href": "day10.html#questions-to-consider-4",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does paging eliminate external fragmentation while supporting multiple processes?\nHow does the hardware (MMU) translate virtual addresses to physical addresses?\nWhat information must the OS maintain to support paging?"
+  },
+  {
+    "objectID": "day10.html#paging-1",
+    "href": "day10.html#paging-1",
+    "title": "CSC 453",
+    "section": "Paging",
+    "text": "Paging\n\nContiguous allocation schemes have many issues (particularly with finding / managing places to put processes), what should we do?\n\nBe non-contiguous!\n\nOf course this introduces many new challenges, but alas\n\n\nTo completely eliminate external fragmentation, we can use paging\n\nNon-contiguous memory allocation scheme that divides memory into fixed-size blocks called pages\nRequires hardware support (MMU) to translate virtual addresses to physical addresses using a page table"
+  },
+  {
+    "objectID": "day10.html#paging-contd",
+    "href": "day10.html#paging-contd",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\nJargon!\n\nPhysical memory is broken into fixed-sized regions: frames; logical memory is broken into fixed-sized regions: pages; backing store is also addressed as fixed-sized blocks\n\nThe paging system handles the mapping of pages to frames\nPages may be logically contiguous, whereas the backing frames and blocks are not\n~Typically |frames| = |pages| = |blocks|; typically between 512B-16KB (huge pages can go to 2MB or 1GB)\n\nMost common size is 4KB these days"
+  },
+  {
+    "objectID": "day10.html#paging-contd-1",
+    "href": "day10.html#paging-contd-1",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\n\n\nAddresses are divided into two parts: page number and page offset\n\nPage number is simply an index to a page\nOffset is for addressing within the given page\n\nRecall that the process point of view is using virtual addressing\n\nThis means we need to bolt address translation into this. What part of the address should we translate?\nPage number only. Offset remains the offset"
+  },
+  {
+    "objectID": "day10.html#paging-contd-2",
+    "href": "day10.html#paging-contd-2",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\nNow we need a directory to convert between virtual page numbers and physical page frames… The page table\n\nCan be any of a number of different data structures\nThe MMU uses the page table to perform address translation on every memory access\n\nMapping is completely transparent to the user / process. OS is in control of the page table\nPage tables are kept by OS for each process\n\nWhere should it be stored?\nPointer held in the PCB; more to deal with on context switch"
+  },
+  {
+    "objectID": "day10.html#page-tables",
+    "href": "day10.html#page-tables",
+    "title": "CSC 453",
+    "section": "Page tables",
+    "text": "Page tables\n\n\n\n\\(2^m\\) is the size of the address space (in bytes), and page size is \\(2^n\\) bytes, then the higher \\(m-n\\) bits designate page number; \\(n\\) low-order bits are page offset\n\n\\(2^4\\) (this example) = 16 pages; page size \\(2^{12}\\) = 4K\n32-bit?\n\n\\(2^{20}\\) pages (1M), 4K pages = max 4GB RAM\n\n64-bit?\n\nWe’ll touch on it later, it isn’t (currently) \\(2^{52}\\)\n\n\n\n\n\n\n\n\n\nUsing n offset bits, we can address all 4096 bytes within the page"
+  },
+  {
+    "objectID": "day10.html#examples",
+    "href": "day10.html#examples",
+    "title": "CSC 453",
+    "section": "Examples",
+    "text": "Examples\n\nA system uses a 32-bit virtual address and 8 bits are used for the offset within a page. How many pages? Size of each page? Total size?\n\n\\(2^{24}\\) pages (~16M), 256 byte pages, 4GB total\n\nVirtual address is 24 bits long. If 10 bits used for the page index.\n\n\\(2^{10}\\) = 1024 pages, \\(2^{14}\\) = 16KB pages, 16MB total size\n\nA system has 256 pages and each page is 8 KB.\n\n8 bits for index (\\(2^8\\) = 256), 13 bits for offset (\\(2^{13}\\) = 8KB), 21 bit total space = \\(2^{21}\\) = 2MB\n\nA system uses a 36-bit virtual address. If the page size is 4 KB\n\n\\(2^{24}\\) pages (16M), 12-bit offset, ~64GB total"
+  },
+  {
+    "objectID": "day10.html#page-tables-contd",
+    "href": "day10.html#page-tables-contd",
+    "title": "CSC 453",
+    "section": "Page tables (cont’d)",
+    "text": "Page tables (cont’d)\n\nPage Size\n\nDepends greatly on system usage\nSmaller provides granularity, but a larger page table, more overhead\nLarger increases throughput and minimizes disk I/O\n\nHow do pages affect fragmentation?\n\nNo external frag\nBut now we have internal fragmentation; unless a process happens to use exactly some multiple of the page size\nOn average: \\(1/2\\) page size per process"
+  },
+  {
+    "objectID": "day10.html#page-table-entries",
+    "href": "day10.html#page-table-entries",
+    "title": "CSC 453",
+    "section": "Page table entries",
+    "text": "Page table entries\n\nPage table entry: what goes into one?\n\nPage frame number (obvi)\nPresent/absent bit: is the page frame number valid?\nProtection bits: What kinds of access are permitted\nModified/Dirty bit: Has this page been modified, perhaps needing to get written to disk before eviction\nReferenced bit: Has the page been referenced; used for eviction\nCaching disable bit: Is cache disabled for this page (for direct I/O)\n\nWhat doesn’t go into one?\n\nBacking store addresses: managed by the file system\nWe only want things needed for address translation by hardware"
+  },
+  {
+    "objectID": "day10.html#size-the-page-table",
+    "href": "day10.html#size-the-page-table",
+    "title": "CSC 453",
+    "section": "Size the page table",
+    "text": "Size the page table\n\nAssume 4 KB pages and 4-byte page table entries. How big is a single, flat page table for…\n\nA 32-bit address space?\nA 64-bit address space?\n\n100 processes on the 32-bit machine — total memory just for page tables?\n\nWhat does this tell you about storing page tables in RAM?\n\n\n\nExpected answers:\n\n32-bit: \\(2^{32}/2^{12} = 2^{20}\\) entries × 4 B = 4 MB per process\n64-bit: \\(2^{64}/2^{12} = 2^{52}\\) entries × 4 B = 16 PB per process (absurd — motivates why real 64-bit systems don’t use the full 64 bits and why we need multi-level / inverted page tables)\n100 processes × 4 MB = 400 MB just for page tables\n\nWhat this tells us about storing page tables in RAM:\n\n4 MB per process is already painful — it’s contiguous physical memory, can’t be paged out the same way (the MMU needs it to do paging), and most of it is empty for typical processes (sparse address space).\nScales with process count, not memory use. A process that touches 1 page still pays for the full 4 MB table.\n64-bit is impossible flat — the table itself wouldn’t fit in any machine. Forces a smarter structure.\nConclusion: don’t store the whole table densely. Use multi-level (only allocate the levels you need), inverted (size by physical RAM, not virtual), or hashed page tables."
+  },
+  {
+    "objectID": "day10.html#paging-summary",
+    "href": "day10.html#paging-summary",
+    "title": "CSC 453",
+    "section": "Paging summary",
+    "text": "Paging summary\n\nPages allow us to:\n\nLoad processes at a finer granularity\nNot experience external fragmentation\nSwap at page granularity (often termed “paging” rather than “swapping”)\n\nBut leads us to have some questions:\n\nHow do I know which pages are in memory, and which are not?\nWhen I need to swap page, which go and which stay?\nHow do I know which pages contain modified data, and I need to write to disk?"
+  },
+  {
+    "objectID": "day10.html#section-4",
+    "href": "day10.html#section-4",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
