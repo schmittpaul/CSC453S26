@@ -11,7 +11,7 @@ format:
 ## Admin
 :::{.nonincremental}
 - Assignment 3 - can be done in c or python
-- Lab due Monday
+- Quiz due Monday
 :::
 
 # Memory Fundamentals {background-color="#40666e"}
