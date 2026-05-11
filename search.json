@@ -1120,6 +1120,293 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day11.html#admin",
+    "href": "day11.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nAssignment 3 due next week\nLab due Thursday"
+  },
+  {
+    "objectID": "day11.html#questions-to-consider",
+    "href": "day11.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does paging eliminate external fragmentation while supporting multiple processes?\nHow does the hardware (MMU) translate virtual addresses to physical addresses?\nWhat information must the OS maintain to support paging?"
+  },
+  {
+    "objectID": "day11.html#paging-1",
+    "href": "day11.html#paging-1",
+    "title": "CSC 453",
+    "section": "Paging",
+    "text": "Paging\n\nContiguous allocation schemes have many issues (particularly with finding / managing places to put processes), what should we do?\n\nBe non-contiguous!\n\nOf course this introduces many new challenges, but alas\n\n\nTo completely eliminate external fragmentation, we can use paging\n\nNon-contiguous memory allocation scheme that divides memory into fixed-size blocks called pages\nRequires hardware support (MMU) to translate virtual addresses to physical addresses using a page table"
+  },
+  {
+    "objectID": "day11.html#paging-contd",
+    "href": "day11.html#paging-contd",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\nJargon!\n\nPhysical memory is broken into fixed-sized regions: frames; logical memory is broken into fixed-sized regions: pages; backing store is also addressed as fixed-sized blocks\n\nThe paging system handles the mapping of pages to frames\nPages may be logically contiguous, whereas the backing frames and blocks are not\n~Typically |frames| = |pages| = |blocks|; between 512B-16KB (huge pages can go to 2MB or 1GB)\n\nMost common size is 4KB these days"
+  },
+  {
+    "objectID": "day11.html#paging-contd-1",
+    "href": "day11.html#paging-contd-1",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\n\n\nAddresses are divided into two parts: page number and page offset\n\nPage number is simply an index to a page\nOffset is for addressing within the given page\n\nRecall that the process point of view is using virtual addressing\n\nThis means we need to bolt address translation into this. What part of the address should we translate?\nPage number only. Offset remains the offset"
+  },
+  {
+    "objectID": "day11.html#paging-contd-2",
+    "href": "day11.html#paging-contd-2",
+    "title": "CSC 453",
+    "section": "Paging (cont’d)",
+    "text": "Paging (cont’d)\n\nNow we need a directory to convert between virtual page numbers and physical page frames… The page table\n\nCan be any of a number of different data structures\nThe MMU uses the page table to perform address translation on every memory access\n\nMapping is completely transparent to the user / process. OS is in control of the page table\nPage tables are kept by OS for each process\n\nWhere should it be stored?\nPointer held in the PCB; more to deal with on context switch"
+  },
+  {
+    "objectID": "day11.html#page-tables",
+    "href": "day11.html#page-tables",
+    "title": "CSC 453",
+    "section": "Page tables",
+    "text": "Page tables\n\n\n\n\\(2^m\\) is the size of the address space (in bytes), and page size is \\(2^n\\) bytes, then the higher \\(m-n\\) bits designate page number; \\(n\\) low-order bits are page offset\n\n\\(2^4\\) (this example) = 16 pages; page size \\(2^{12}\\) = 4K\n32-bit?\n\n\\(2^{20}\\) pages (1M), 4K pages = max 4GB RAM\n\n64-bit?\n\nWe’ll touch on it later, it isn’t (currently) \\(2^{52}\\)\n\n\n\n\n\n\n\n\n\nUsing n offset bits, we can address all 4096 bytes within the page"
+  },
+  {
+    "objectID": "day11.html#examples",
+    "href": "day11.html#examples",
+    "title": "CSC 453",
+    "section": "Examples",
+    "text": "Examples\n\nA system uses a 32-bit virtual address and 8 bits are used for the offset within a page. How many pages? Size of each page? Total size?\n\n\\(2^{24}\\) pages (~16M), 256 byte pages, 4GB total\n\nVirtual address is 24 bits long. If 10 bits used for the page index.\n\n\\(2^{10}\\) = 1024 pages, \\(2^{14}\\) = 16KB pages, 16MB total size\n\nA system has 256 pages and each page is 8 KB.\n\n8 bits for index (\\(2^8\\) = 256), 13 bits for offset (\\(2^{13}\\) = 8KB), 21 bit total space = \\(2^{21}\\) = 2MB\n\nA system uses a 36-bit virtual address. If the page size is 4 KB\n\n\\(2^{24}\\) pages (16M), 12-bit offset, ~64GB total"
+  },
+  {
+    "objectID": "day11.html#page-tables-contd",
+    "href": "day11.html#page-tables-contd",
+    "title": "CSC 453",
+    "section": "Page tables (cont’d)",
+    "text": "Page tables (cont’d)\n\nPage Size\n\nDepends greatly on system usage\nSmaller provides granularity, but a larger page table, more overhead\nLarger increases throughput and minimizes disk I/O\n\nHow do pages affect fragmentation?\n\nNo external frag\nBut now we have internal fragmentation; unless a process happens to use exactly some multiple of the page size\nOn average: \\(1/2\\) page size per process"
+  },
+  {
+    "objectID": "day11.html#page-table-entries",
+    "href": "day11.html#page-table-entries",
+    "title": "CSC 453",
+    "section": "Page table entries",
+    "text": "Page table entries\n\nPage table entry: what goes into one?\n\nPage frame number (obvi)\nPresent/absent bit: is the page frame number valid?\nProtection bits: What kinds of access are permitted\nModified/Dirty bit: Has this page been modified, perhaps needing to get written to disk before eviction\nReferenced bit: Has the page been referenced; used for eviction\nCaching disable bit: Is cache disabled for this page (for direct I/O)\n\nWhat doesn’t go into one?\n\nBacking store addresses: managed by the file system\nWe only want things needed for address translation by hardware"
+  },
+  {
+    "objectID": "day11.html#size-the-page-table",
+    "href": "day11.html#size-the-page-table",
+    "title": "CSC 453",
+    "section": "Size the page table",
+    "text": "Size the page table\n\nAssume 4 KB pages and 4-byte page table entries. How big is a single, flat page table for…\n\nA 32-bit address space?\nA 64-bit address space?\n\n100 processes on the 32-bit machine — total memory just for page tables?\n\nWhat does this tell you about storing page tables in RAM?\n\n\n\nExpected answers:\n\n32-bit: \\(2^{32}/2^{12} = 2^{20}\\) entries × 4 B = 4 MB per process\n64-bit: \\(2^{64}/2^{12} = 2^{52}\\) entries × 4 B = 16 PB per process (absurd — motivates why real 64-bit systems don’t use the full 64 bits and why we need multi-level / inverted page tables)\n100 processes × 4 MB = 400 MB just for page tables\n\nWhat this tells us about storing page tables in RAM:\n\n4 MB per process is already painful — it’s contiguous physical memory, can’t be paged out the same way (the MMU needs it to do paging), and most of it is empty for typical processes (sparse address space).\nScales with process count, not memory use. A process that touches 1 page still pays for the full 4 MB table.\n64-bit is impossible flat — the table itself wouldn’t fit in any machine. Forces a smarter structure.\nConclusion: don’t store the whole table densely. Use multi-level (only allocate the levels you need), inverted (size by physical RAM, not virtual), or hashed page tables."
+  },
+  {
+    "objectID": "day11.html#paging-summary",
+    "href": "day11.html#paging-summary",
+    "title": "CSC 453",
+    "section": "Paging summary",
+    "text": "Paging summary\n\nPages allow us to:\n\nLoad processes at a finer granularity\nNot experience external fragmentation\nSwap at page granularity (often termed “paging” rather than “swapping”)\n\nBut leads us to have some questions:\n\nHow do I know which pages are in memory, and which are not?\nWhen I need to swap page, which go and which stay?\nHow do I know which pages contain modified data, and I need to write to disk?"
+  },
+  {
+    "objectID": "day11.html#section",
+    "href": "day11.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day11.html#questions-to-consider-1",
+    "href": "day11.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat makes a good page replacement strategy, and why?\nHow can we approximate optimal page replacement without knowing the future?\nWhat are the practical implementation challenges for different page replacement algorithms?"
+  },
+  {
+    "objectID": "day11.html#page-replacement-policies",
+    "href": "day11.html#page-replacement-policies",
+    "title": "CSC 453",
+    "section": "Page replacement policies",
+    "text": "Page replacement policies\n\nWhen a running process needs a page, but physical memory is full, we must evict a frame to make room; this is page replacement\nWhich frame do we evict?\nThe frame to evict is called the victim\n\nIn some cases, victims may be simply overwritten in memory. When would that make sense?\n\nIf they are read-only or haven’t been modified\n\nOr may need to be written to swap (because they have been modified)"
+  },
+  {
+    "objectID": "day11.html#page-replacement-1",
+    "href": "day11.html#page-replacement-1",
+    "title": "CSC 453",
+    "section": "Page replacement",
+    "text": "Page replacement\n\nKeep in mind: Page replacement is a costly operation: at least two I/O operations, so its important to minimize\n\nIf we’re not careful in how we select our victims, we may further delay the system\n\nClean pages are preferred victims: they can be evicted by simply overwriting the frame — no disk write needed\n\nDirty pages require a write-back to disk before the frame can be reused, adding I/O cost to an already expensive operation\n\nPotential downside of evicting dirty pages?\n\nForces the write at the worst possible time (process is stalled waiting); batching dirty writes during idle time would be more efficient\nDirty pages are also indicative of recent activity, making them likely to be needed again soon"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-opt",
+    "href": "day11.html#page-replacement-algorithms-opt",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: OPT",
+    "text": "Page replacement algorithms: OPT\n\nOptimal Page Replacement (OPT)\n\nWe really want to evict the page that will not be used longest\nEach page could be labeled with the number of instructions that will be executed BEFORE page is referenced\nOf course, this is impossible (akin to SJF as optimal), but useful as a benchmark\nExample: RAM with 3 slots, following reference pattern:"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-fifo",
+    "href": "day11.html#page-replacement-algorithms-fifo",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: FIFO",
+    "text": "Page replacement algorithms: FIFO\n\nFirst-In-First-Out (FIFO)\nSimple: first page in (oldest) will be evicted\nDownsides?\n\nIndiscriminate of use: might throw out important pages\n\nCan lead to Belady’s anomaly: adding more frames can lead to more page faults\n\nWhy? Because it doesn’t consider use at all (the stack property)\nTry this reference pattern with 3 frames and then 4 frames to see the anomaly:"
+  },
+  {
+    "objectID": "day11.html#beladys-anomaly",
+    "href": "day11.html#beladys-anomaly",
+    "title": "CSC 453",
+    "section": "Belady’s anomaly",
+    "text": "Belady’s anomaly\n\nWithout the stack property, we can have more page faults with more frames because we are ignoring use \nNumber of page faults with 3 frames = 9 \nNumber of page faults with 4 frames = 10"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-lru",
+    "href": "day11.html#page-replacement-algorithms-lru",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: LRU",
+    "text": "Page replacement algorithms: LRU\n\nWe can’t tell the future, what should we do?\n\nLook at the past\n\nLeast Recently Used (LRU)\n\nEach page has some age with respect to use; replace page that hasn’t been used in the longest time\nLike OPT, but only looking backwards\n\nUnfortunately, there is a chance that the page you evict is needed immediately"
+  },
+  {
+    "objectID": "day11.html#lru-contd",
+    "href": "day11.html#lru-contd",
+    "title": "CSC 453",
+    "section": "LRU (cont’d)",
+    "text": "LRU (cont’d)\n\nLRU does not exhibit Belady’s anomaly\nHow can we implement LRU?\n\nCounters: each entry has an associated clock\n\nNo, waste of space, takes time to search\n\nOrdered queue\n\nLess space wasted, but a lot more memory accesses (pointers) to keep up-to-date\n\nBoth are impractical without specialized hardware\nWe can approximate LRU with a single bit in the page table entry: reference bit\n\nBit set when page is referenced\nBits set to zero initially and cleared periodically (e.g., via timer interrupt)"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-others",
+    "href": "day11.html#page-replacement-algorithms-others",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: others",
+    "text": "Page replacement algorithms: others\n\nSecond Chance\n\nUse a FIFO queue and a reference bit\n\nIf bit is 0, replace the page\nIf bit is 1, set to 0 and move to the end of the queue\n\nDownside?\n\nMoving pages around is expensive\n\n\nClock\n\nPage frames in a circular list, and have a clock “hand” point to the oldest page (next replacement candidate)\nWhen evicting, look at page pointed to by hand\n\nIf reference bit is 0, replace page\nIf bit is 1, set to 0, and advance hand\n\nA nice approximation of LRU"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-others-contd",
+    "href": "day11.html#page-replacement-algorithms-others-contd",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: others (cont’d)",
+    "text": "Page replacement algorithms: others (cont’d)\n\nLeast Frequently Used\n\nKeep / increment counter for each page\nOne with lowest value\nDownside?\n\nIf something is used a lot at program startup, then no longer. Answer to this is aging\n\n\nMost Frequently Used\n\nSame as above only evict the page with highest value\nDownside?\n\nOne with the smallest value just arrived, yet to be used\n\n\nBoth are bad ideas. They do not approximate OPT and they are expensive"
+  },
+  {
+    "objectID": "day11.html#page-replacement-algorithms-summary",
+    "href": "day11.html#page-replacement-algorithms-summary",
+    "title": "CSC 453",
+    "section": "Page replacement algorithms: summary",
+    "text": "Page replacement algorithms: summary\n\nOPT is optimal but impossible. LRU is a good approximation.\nMany different page replacement algorithms (many not covered here), with different performance characteristics and hardware requirements\ne.g., Linux: LRU 2Q\n\nTwo lists (active/inactive), each simulating the reference bit state\nNo hardware requirement\n\nNote that the concept of page replacement is seen at all interfaces of the memory hierarchy, just at different time scales; and, within certain applications\n\nWe focus on the disk/RAM interface because the difference in access time is so great"
+  },
+  {
+    "objectID": "day11.html#section-1",
+    "href": "day11.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day11.html#questions-to-consider-2",
+    "href": "day11.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhy is page table size a critical concern for memory efficiency?\nHow can hardware support (like the TLB) improve address translation performance?\nHow does context switching interact with the TLB, and what mechanisms address the correctness and performance problems it creates?"
+  },
+  {
+    "objectID": "day11.html#page-table-size",
+    "href": "day11.html#page-table-size",
+    "title": "CSC 453",
+    "section": "Page table size",
+    "text": "Page table size\n\nIf we have a 32-bit address space and 4KB pages, we have:\n\n\\(2^{20}\\) pages (1M)\nEach page table entry is typically 4 bytes\nTotal page table size = 4MB per process\nIf we have 100 processes, that’s 400MB just for page tables. Yikes\n\nWe’ll come back to this later. Bottom line: we do not use linear page tables (what we’ve talked about so far, e.g., the page table as an array)"
+  },
+  {
+    "objectID": "day11.html#page-table-size-contd",
+    "href": "day11.html#page-table-size-contd",
+    "title": "CSC 453",
+    "section": "Page table size (cont’d)",
+    "text": "Page table size (cont’d)\n\nTo be efficient: we’re going to require some hardware support and clever structures\nWhy do we care?\n\nReason 1 (Speed): Translations must be done on every memory reference\nReason 2 (Cost): memory is getting larger:\n\n32-bit words, 4K page: 1 million entries at 4 bytes each = 4MB per process;\n64-bit words, 4K page: \\(2^{52}\\) entries at 8 bytes each = 30M GB (32 PB)"
+  },
+  {
+    "objectID": "day11.html#page-table-access",
+    "href": "day11.html#page-table-access",
+    "title": "CSC 453",
+    "section": "Page table access",
+    "text": "Page table access\n\nWhere should the page table be stored?\n\nOld solution: registers and special hardware (not scalable)\nReal answer: in main memory\n\nPCB holds pointer to page table; context switch needs to account for this\n\nSee any downsides to this?\n\nIf the page table is large, it can consume a lot of memory\nRequires two memory accesses for each actual memory access (one for the page table, one for the data)\nHow do we speed this up?\n\nHardware"
+  },
+  {
+    "objectID": "day11.html#translation-lookaside-buffer-tlb",
+    "href": "day11.html#translation-lookaside-buffer-tlb",
+    "title": "CSC 453",
+    "section": "Translation lookaside buffer (TLB)",
+    "text": "Translation lookaside buffer (TLB)\n\nUse associative memory\n\nCan someone tell me what’s special about associative (a.k.a. content-addressable) memory?\n\nParallel search: All key values can be queried at once; if found, value is returned\n\n\nComprised of key(tag)-value pairs\n\nUltimately it is a cache for the page table\n\nExpensive, so TLB only contains a small number of entries"
+  },
+  {
+    "objectID": "day11.html#tlb-contd",
+    "href": "day11.html#tlb-contd",
+    "title": "CSC 453",
+    "section": "TLB (cont’d)",
+    "text": "TLB (cont’d)\n\n\n\nHow it works: logical address from CPU (say, a process is looking to load a variable stored at address 100 in its address space)\nIf it’s a miss (not in TLB); we must fetch the entry from the page table, perhaps replacing an existing entry\n\nsoft miss: page is in main memory\nhard miss: page is on disk (swapped, also known as a page fault)"
+  },
+  {
+    "objectID": "day11.html#tlb-contd-1",
+    "href": "day11.html#tlb-contd-1",
+    "title": "CSC 453",
+    "section": "TLB (cont’d)",
+    "text": "TLB (cont’d)\n\nIf it’s a hit (in TLB), we can directly get the physical address and access memory\n\nTLB is fast enough that a hit results in one memory access (for the data), while a miss results in two memory accesses (one for the page table, one for the data)\n\nHit ratio determines effective access time\nExample: 80% hit rate; 10ns to access memory\n\nA hit = 10ns; a miss = 20ns\nEAT = \\((.8 * 10) + (.2 * 20) = 12ns\\)\n99% hit? = \\((.99 * 10) + (.01 * 20) = 10.1ns\\)\n\nWhat about process page entries that we’d like to keep in the TLB? (kernel)\n\n“Wired down” i.e., cannot be replaced"
+  },
+  {
+    "objectID": "day11.html#tlb-contd-2",
+    "href": "day11.html#tlb-contd-2",
+    "title": "CSC 453",
+    "section": "TLB (cont’d)",
+    "text": "TLB (cont’d)\n\nWait, we have multiple processes with virtual addressing and one small TLB. What happens on a context switch?\n\nE.g., virtual page 1 for process one != virtual page 1 for process 2\n\nCould flush: empty on context switch\n\nDownside?\n\nYou lose a lot of the goodness of caching. Needs to be rebuilt every time\n\n\nOther idea?\n\nAddress-space identifiers (ASIDs) will bind TLB entries to a particular process\n\nPreventing a process from access a page that doesn’t belong to it, but allowing pages from multiple processes to coexist in the TLB"
+  },
+  {
+    "objectID": "day11.html#section-2",
+    "href": "day11.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day11.html#questions-to-consider-3",
+    "href": "day11.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow can we organize page tables to handle large address spaces efficiently?\nWhat are the trade-offs between space overhead and lookup complexity?\nWhen and why would we choose alternative page table designs?"
+  },
+  {
+    "objectID": "day11.html#page-table-structures-1",
+    "href": "day11.html#page-table-structures-1",
+    "title": "CSC 453",
+    "section": "Page table structures",
+    "text": "Page table structures\n\n\n\nLinear page tables are wasteful; particularly if you have a number of unused pages (likely)\nAnswer?\n\nMultilevel page tables"
+  },
+  {
+    "objectID": "day11.html#multilevel-page-tables",
+    "href": "day11.html#multilevel-page-tables",
+    "title": "CSC 453",
+    "section": "Multilevel page tables",
+    "text": "Multilevel page tables\n\n\n\nExample: Two-level page table: Split the page table address into two\n\n10-bit PT1, 10-bit PT2, and 12-bit offset field\n\nTop level page table references 1024 2nd tier page tables\nEach 2nd tier page table references 1024, 4K pages\n\n\n\n\n\n\n\nBenefit?\n\n2nd tier tables need not be resident in memory if unused\n\\(2^{20}\\) addressable, with only 4 tables resident (16KB rather than 4MB)"
+  },
+  {
+    "objectID": "day11.html#multilevel-page-tables-contd",
+    "href": "day11.html#multilevel-page-tables-contd",
+    "title": "CSC 453",
+    "section": "Multilevel page tables (cont’d)",
+    "text": "Multilevel page tables (cont’d)\n\n\n\nThis is expandable to more levels\n\nNote that 64-bit doesn’t use the full 64-bit\n48-bits allow us to address 256TB"
+  },
+  {
+    "objectID": "day11.html#inverted-page-tables",
+    "href": "day11.html#inverted-page-tables",
+    "title": "CSC 453",
+    "section": "Inverted page tables",
+    "text": "Inverted page tables\n\n\n\nWhat we’ve seen so far: one page table per process\nAlternative: one page table for the entire system, with an entry for each frame of physical memory (inverted page table)\n\nEach entry contains the virtual address of the page stored in that frame, along with information about the process that owns that page\nEntry holds which pid owns the frame, and its virtual address"
+  },
+  {
+    "objectID": "day11.html#inverted-page-tables-contd",
+    "href": "day11.html#inverted-page-tables-contd",
+    "title": "CSC 453",
+    "section": "Inverted page tables (cont’d)",
+    "text": "Inverted page tables (cont’d)\n\nReduces size, but increases lookup complexity\n\nmust do a full search of the page table (slow)\n\nWe can use a hash table to index into page table, or combine with a TLB to speed up frequent lookups\nNot commonly used in practice\n\nOnce RAM became cheaper, the size of page tables became less of an issue, and the complexity of inverted page tables outweighed their benefits"
+  },
+  {
+    "objectID": "day11.html#section-3",
+    "href": "day11.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day5.html#admin",
     "href": "day5.html#admin",
     "title": "CSC 453",
