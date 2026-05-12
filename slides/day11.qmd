@@ -12,6 +12,7 @@ format:
 :::{.nonincremental}
 - Assignment 3 due next week
 - Lab due Thursday
+- Exam 2 next Thursday, May 21
 :::
 
 
