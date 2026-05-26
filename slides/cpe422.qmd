@@ -11,16 +11,6 @@ format:
 
 
 # Privacy vs experience (performance, usability) {background-color="#40666e"}
-:::{.notes}
-TABLE: 
-
-- Real identity
-- IP
-- location
-- Destination
-- content / activity
-:::
-
 
 ## Tor in one slide
 :::{.incremental}
@@ -30,10 +20,6 @@ TABLE:
 - Exit knows *what you're doing* but not who you are
 - Middle glues them together without learning either side
 - **No single relay can link identity ↔ activity**
-:::
-
-::: {.notes}
-BOARD: Draw three boxes in a line — Guard, Middle, Exit — with the client on the left and the destination on the right. Draw the layered encryption as nested envelopes: the client wraps the message three times, and each relay peels one layer. Label what each box can read after unwrapping its layer. This picture is worth spending two minutes on; every subsequent system is a simplification of it.
 :::
 
 
@@ -48,9 +34,6 @@ BOARD: Draw three boxes in a line — Guard, Middle, Exit — with the client on
 - **No** protection against someone who can watch both your traffic into Tor and traffic leaving Tor
 :::
 
-::: {.notes}
-Pause on the last bullet. The global passive adversary — someone who can watch both ends — can correlate timing even without breaking any encryption. This is the fundamental limit of mix-network designs. Also worth saying verbally: the "fixed-size chunks" point means Tor pads everything to 512-byte cells so packet sizes can't leak content. That's a real engineering cost.
-:::
 
 ## What Tor costs you
 :::{.incremental}
@@ -108,26 +91,9 @@ Can we design a system that defeats *that* attacker, at a price (performance, ex
 - Trade-off: if A and B collude, you lose. 
 :::
 
-::: {.notes}
-BOARD: Draw two boxes labeled A (identity) and B (activity). Write "profile = A ∩ B" and put a wall between them labeled "must not cooperate." Then draw an arrow from an attacker pointing at the wall and write "subpoena / hack / acquisition." This diagram recurs for every system in the talk — ODoH, Private Relay, OHTTP, PGPP all instantiate it differently. Worth drawing it once here so students can map each case back to it.
-:::
-
-<!-- ## {background-color="#6E404F"}
-::: {.r-fit-text}
-Is a 2-party split "real" privacy?
-
-When is it enough?
-::: -->
-
 
 # Oblivious DNS {background-color="#40666e"}
 
-<!-- ## Questions to consider
-:::{.nonincremental}
-- Why is DNS a privacy disaster, even with DoH/DoT encrypting the wire?
-- How does ODoH separate "who is asking" from "what they're asking"?
-- What does it cost, in delay and in trust assumptions?
-::: -->
 
 ## Why DNS is a privacy problem
 :::{.incremental}
@@ -152,9 +118,7 @@ When is it enough?
 - Response is encrypted back to the client the same way
 :::
 
-::: {.notes}
-BOARD: Draw the flow left to right: Client → Proxy → Resolver. Then annotate: the arrow from client to proxy carries [encrypted query + client IP]. The arrow from proxy to resolver carries [encrypted query + proxy IP]. Label what each party can read. The key visual is that the encrypted blob passes through the proxy untouched — the proxy is a courier, not a reader. This sets up the HPKE slide.
-:::
+
 
 ## ODoH: what each party sees
 :::: {.columns}
@@ -191,9 +155,7 @@ BOARD: Draw the flow left to right: Client → Proxy → Resolver. Then annotate
 - **Why ephemeral keys matter**: each query uses a fresh key pair — queries are unlinkable even if the resolver's long-term private key is later exposed
 :::
 
-::: {.notes}
-BOARD: Sketch the HPKE exchange if the audience looks engaged. Resolver has a long-term key pair (PK_r, SK_r). Client generates a fresh ephemeral (PK_e, SK_e) for this query. DH(SK_e, PK_r) = shared secret → symmetric key K. Client encrypts query with K; sends [PK_e, ciphertext] to proxy. Resolver runs DH(SK_r, PK_e) = same K, decrypts. Key point: the proxy only ever sees PK_e and ciphertext — it has no way to compute K. The ephemeral key also means each query session is independent; compromising SK_r later doesn't help.
-:::
+
 
 ## The trust assumption
 :::{.incremental}
@@ -214,22 +176,11 @@ BOARD: Sketch the HPKE exchange if the audience looks engaged. Resolver has a lo
 - It's one piece of a larger privacy story
 :::
 
-<!-- ## {background-color="#6E404F"}
-::: {.r-fit-text}
-Would you trust a "we do not share logs" promise?
-
-What would make you trust it more?
-::: -->
 
 
 # Apple iCloud Private Relay {background-color="#40666e"}
 
-<!-- ## Questions to consider
-:::{.nonincremental}
-- How do you generalize the ODoH pattern from DNS queries to *all* web traffic?
-- What does Apple see, what does the third party see, and what does the website see?
-- Why is this fast when Tor is slow: what's structurally different?
-::: -->
+
 
 ## The pitch
 :::{.nonincremental}
@@ -252,9 +203,7 @@ Apple iCloud Private Relay (launched 2021, iCloud+ subscribers):
 - Target website sees the second hop's IP, not yours
 :::
 
-::: {.notes}
-BOARD: Draw the four-party chain: Client → Ingress (Apple) → Egress (3rd party) → Destination. This sets up the nested tunnel slide. Label what's visible at each link: between client and ingress the outer connection (Apple sees your IP/ID); between ingress and egress the tunneled connection (Apple forwards but can't read it); between egress and destination a normal HTTPS connection. Stress that the client encrypts to the egress *before* sending to Apple — so Apple is carrying a box it can't open.
-:::
+
 
 ## What each party sees
 :::: {.columns}
@@ -307,9 +256,6 @@ Four independently encrypted layers:
 Apple holds key ①. Egress holds key ③. **Neither can decrypt the other's layer.**
 :::
 
-::: {.notes}
-Walk through the table row by row. The key insight to land: the ingress (Apple) in row ② is just forwarding UDP packets whose TLS it cannot decrypt — it physically cannot read the inner connection because it doesn't hold key ③. If the audience is engaged, sketch the nesting on the board: draw a QUIC connection as an outer box, and inside it draw the CONNECT-UDP tunnel as a pipe, and inside that draw the inner QUIC connection as another box. Apple holds the lock on the outer box; the egress holds the lock on the inner box. Neither has both locks.
-:::
 
 ## What Private Relay does NOT do
 :::{.incremental}
@@ -366,9 +312,7 @@ Walk through the table row by row. The key insight to land: the ingress (Apple) 
 - This is the **anonymous credential problem**
 :::
 
-::: {.notes}
-This is a good place to pause and let students feel the tension before giving the answer. Ask: "How would you solve this?" The naive answer — just show your Apple ID token — is exactly the wrong answer because the ingress relay could then log Apple ID + connection timing, which is a profile. The right answer involves cryptographically separating the act of authentication from the act of connecting.
-:::
+
 
 ## Blind-signed tokens (used in many systems)
 :::{.incremental}
@@ -380,30 +324,10 @@ This is a good place to pause and let students feel the tension before giving th
 - Tokens are single-use; the relay marks them spent to prevent reuse
 :::
 
-::: {.notes}
-The physical analogy that works: carbon paper inside a sealed envelope. You put your token inside an envelope lined with carbon paper. Apple signs the outside of the envelope — the signature presses through onto the token inside. You open the envelope and hand just the token (with the imprint) to the relay. The relay sees a genuine Apple signature on the token, but Apple only ever saw and signed the outside of the envelope — they never knew what was inside.
 
-The protocol Apple uses is Privacy Pass (RFC 9576 / RFC 9578), which uses a Verifiable Oblivious Pseudorandom Function (VOPRF) instead of classical RSA blind signatures — same property, more efficient. The "oblivious" in VOPRF is doing exactly the same job as "blind" in blind signatures: the issuer evaluates a function on your input without learning the input.
-
-Key thing to stress: this is not just a policy promise. The math prevents Apple's token-issuing service from linking a specific token to the Apple account that requested it, even if they wanted to. The cryptographic separation is real.
-:::
-
-<!-- ## {background-color="#6E404F"}
-::: {.r-fit-text}
-Would you ship this to your family?
-
-Would you ship Tor to your family?
-::: -->
 
 
 # Forward vs. reverse: OHTTP {background-color="#40666e"}
-
-<!-- ## Questions to consider
-:::{.nonincremental}
-- Private Relay protects *all* traffic but needs client-side plumbing. What if the client can't opt in?
-- What if a *service* wants to offer privacy to users who don't even know they need it?
-- What changes when the operator of the proxy is chosen by the *destination* instead of the client?
-::: -->
 
 ## Forward vs. reverse proxy privacy
 :::: {.columns}
@@ -429,9 +353,6 @@ Would you ship Tor to your family?
 :::
 ::::
 
-::: {.notes}
-BOARD: Draw two diagrams side by side. Left (forward): arrow originates at the client, goes through a proxy box, reaches various destination boxes — the client drives it. Right (reverse): the destination box has a gateway sitting in front of it; the client arrow hits the gateway first, no client-side config needed. The key flip: in forward proxying the *user* decides to use privacy; in reverse proxying the *service* decides to offer it. Ask: "Can you think of a case where the user can't opt in but still deserves privacy?" (Crash reporters, telemetry, safe-browsing — they phone home without user action.)
-:::
 
 
 ## The OHTTP pitch
@@ -468,15 +389,6 @@ In all of these: the content of the request is not sensitive; **the association 
 - **ODoH and OHTTP converged on the same crypto layer**: HPKE was designed precisely for this "encrypt to an untrusted path" pattern
 :::
 
-::: {.notes}
-KEM (Key Encapsulation Mechanism): how two parties establish a shared secret. The client generates an ephemeral key pair, does a Diffie-Hellman exchange with the gateway's public key, and both sides derive the same secret. The client sends its ephemeral public key so the gateway can do the same math.
-
-KDF (Key Derivation Function): takes the raw KEM secret and derives proper symmetric key material. HKDF is standard. You can derive multiple keys from one secret — e.g., separate keys for request and response.
-
-AEAD (Authenticated Encryption with Associated Data): the symmetric cipher that does the actual encryption. "Authenticated" means a MAC tag is produced alongside the ciphertext so tampering is detected. "Associated data" is cleartext metadata that gets authenticated but not encrypted. AES-GCM and ChaCha20-Poly1305 are the common choices.
-
-Pipeline: KEM establishes the secret → KDF derives clean key material → AEAD encrypts the payload. HPKE (RFC 9180) is a standard way to wire these three together — which is why ODoH and OHTTP both converged on it.
-:::
 
 ## What OHTTP gives up
 :::{.incremental}
@@ -488,20 +400,8 @@ Pipeline: KEM establishes the secret → KDF derives clean key material → AEAD
 :::
 
 
-<!-- ## {background-color="#6E404F"}
-::: {.r-fit-text}
-Who should pay for privacy: the user, or the service?
-::: -->
-
 
 # The broader landscape {background-color="#40666e"}
-
-<!-- ## Questions to consider
-:::{.nonincremental}
-- How have other companies adapted the two-hop pattern?
-- Where does the trust actually live in these systems?
-- What's the next frontier, and where does this pattern start to break?
-::: -->
 
 ## Google IP Protection (Chrome)
 :::{.incremental}
@@ -547,10 +447,6 @@ Who should pay for privacy: the user, or the service?
 - These mainly protect IP addresses. The browser/application layer is a separate problem.
 :::
 
-::: {.notes}
-Dwell on the subpoena point. In the US, both parties can be served simultaneously under a gag order — the math guarantees nothing if the legal system compels cooperation. The acquisition point is subtle: if the same company buys both hops, the separation evaporates. Also worth asking verbally: "What does it mean that the destination itself is the biggest threat?" — the answer is that IP privacy only gets you so far; once you log in, create an account, or even just have a unique browser fingerprint, the destination can track you regardless of which IP you came from.
-:::
-
 
 ## Scenario
 :::{.nonincremental}
@@ -560,25 +456,6 @@ You use iCloud Private Relay all day. You're also logged into Google, Instagram,
 
 :::
 
-::: {.notes}
-Let them actually think quietly for 3 minutes — resist the urge to fill the silence.
-
-During pair discussion, circulate and listen for:
-- Students who say "almost nothing" (probably right, for this specific scenario)
-- Students who say "it still helped against the ISP" (also right — worth surfacing)
-- Anyone who notices the distinction between sites you logged into vs. sites you just browsed
-
-In the share-out, the answer you want to land:
-
-Private Relay protected them from two things: their ISP seeing which sites they visited, and unauthenticated sites linking their IP to their browsing. For everything they were logged into — Google, Instagram, the university — those services have a complete profile regardless of which IP the requests came from. The IP was never the identifying piece there; the account was.
-
-The "what would have had to be different" question is the important one. Answers to draw out:
-- Not logging in (browsing anonymously, no accounts)
-- Using a different browser profile or a clean browser with no cookies
-- The sites not using fingerprinting (screen size, fonts, etc.)
-
-The takeaway to say out loud: *these systems operate at the network layer. The application layer — logins, cookies, fingerprints — is a separate problem, and it's usually the bigger one.*
-:::
 
 ## The takeaway
 :::{.incremental}
@@ -666,21 +543,3 @@ The takeaway to say out loud: *these systems operate at the network layer. The a
 - The cellular network was just another single point of correlation
 - Whenever a protocol bottlenecks identity through one party, the same fix applies
 :::
-
-<!-- ## What to read next
-:::{.nonincremental}
-- RFC 9230: Oblivious DNS over HTTPS
-- RFC 9458: Oblivious HTTP
-- Apple's iCloud Private Relay overview (developer.apple.com)
-- IETF MASQUE working group drafts
-- Google's "IP Protection" design doc (Chromium)
-- Schmitt & Raghavan, *Pretty Good Phone Privacy*, USENIX Security 2021
-- The original Tor paper (Dingledine, Mathewson, Syverson, 2004), still worth reading
-::: -->
-
-<!-- ## {background-color="#6E404F"}
-::: {.r-fit-text}
-What isn't clear?
-
-Comments? Thoughts?
-::: -->
