@@ -12,6 +12,7 @@ format:
 :::{.nonincremental}
 - Lab due Tonight
 - Quiz due next Monday
+- I will hold office hours on Monday from 12-3pm 
 - Reminder the final is on Tuesday, June 9th at 13:10 in the lab room
 :::
 
