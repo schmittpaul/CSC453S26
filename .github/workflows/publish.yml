@@ -55,6 +55,8 @@ jobs:
             exit 0
           fi
 
+          repo_root="${GITHUB_WORKSPACE:-$PWD}"
+          docs_dir="$repo_root/slides/docs"
           tmp_dir="$(mktemp -d)"
           server_pid=""
           cleanup() {
@@ -71,10 +73,10 @@ jobs:
           sleep 2
 
           for source in "${slide_sources[@]}"; do
-            quarto render "$source" --output-dir slides/docs
+            quarto render "$source" --output-dir "$docs_dir"
             html_name="$(basename "${source%.qmd}").html"
-            html_path="slides/docs/$html_name"
-            pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
+            html_path="$docs_dir/$html_name"
+            pdf_path="$docs_dir/$(basename "${source%.qmd}").pdf"
 
             cp "$html_path" "$tmp_dir/$html_name"
             python3 -c "from pathlib import Path; import re, sys; p = Path(sys.argv[1]); html = p.read_text(); html = re.sub(r'class=\"([^\"]*)\"', lambda m: 'class=\"' + ' '.join(c for c in m.group(1).split() if c != 'fragment') + '\"', html); html = re.sub(r'\\sdata-fragment-index=\"[^\"]*\"', '', html); html = re.sub(r\"\\sdata-fragment-index='[^']*'\", '', html); p.write_text(html)" "$tmp_dir/$html_name"
