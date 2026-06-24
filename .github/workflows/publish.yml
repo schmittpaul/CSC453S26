@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install decktape
         run: npm install -g decktape@3.15.0
@@ -55,13 +55,17 @@ jobs:
             exit 0
           fi
 
+          python3 -m http.server 8000 --bind 127.0.0.1 --directory "$GITHUB_WORKSPACE" >/tmp/csc453-slides-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" >/dev/null 2>&1 || true' EXIT
+
+          sleep 2
+
           for source in "${slide_sources[@]}"; do
             quarto render "$source" --output-dir slides/docs
-            html_path="$(realpath "slides/docs/$(basename "${source%.qmd}").html")"
-            html_url="file://$html_path"
+            html_url="http://127.0.0.1:8000/slides/docs/$(basename "${source%.qmd}").html"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
             decktape reveal \
-              --chrome-arg=--allow-file-access-from-files \
               --chrome-arg=--no-sandbox \
               --chrome-arg=--disable-setuid-sandbox \
               "$html_url" \
