@@ -55,28 +55,17 @@ jobs:
             exit 0
           fi
 
-          server_log="$(mktemp)"
-          python3 -m http.server 8000 --bind 127.0.0.1 --directory slides/docs >"$server_log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" >/dev/null 2>&1 || true; echo "::group::HTTP server log"; tail -n 200 "$server_log" || true; echo "::endgroup::"' EXIT
-
-          sleep 2
-
           for source in "${slide_sources[@]}"; do
             quarto render "$source" --output-dir slides/docs
-            html_name="$(basename "${source%.qmd}").html"
-            html_path="http://127.0.0.1:8000/$html_name"
+            html_path="slides/docs/$(basename "${source%.qmd}").html"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
             decktape reveal \
+              --chrome-arg=--allow-file-access-from-files \
               --chrome-arg=--no-sandbox \
               --chrome-arg=--disable-setuid-sandbox \
               "$html_path" \
               "$pdf_path"
           done
-
-          echo "::group::HTTP server log"
-          tail -n 200 "$server_log" || true
-          echo "::endgroup::"
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
