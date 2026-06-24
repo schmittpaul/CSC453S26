@@ -55,9 +55,10 @@ jobs:
             exit 0
           fi
 
-          python3 -m http.server 8000 --directory slides/docs >/tmp/csc453-slides-http.log 2>&1 &
+          server_log="$(mktemp)"
+          python3 -m http.server 8000 --bind 127.0.0.1 --directory slides/docs >"$server_log" 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" >/dev/null 2>&1 || true' EXIT
+          trap 'kill "$server_pid" >/dev/null 2>&1 || true; echo "::group::HTTP server log"; tail -n 200 "$server_log" || true; echo "::endgroup::"' EXIT
 
           sleep 2
 
@@ -72,6 +73,10 @@ jobs:
               "$html_path" \
               "$pdf_path"
           done
+
+          echo "::group::HTTP server log"
+          tail -n 200 "$server_log" || true
+          echo "::endgroup::"
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
