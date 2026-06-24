@@ -81,7 +81,7 @@ jobs:
             cp "$html_path" "$tmp_dir/$html_name"
             python3 -c "from pathlib import Path; import re, sys; p = Path(sys.argv[1]); html = p.read_text(); html = re.sub(r'class=\"([^\"]*)\"', lambda m: 'class=\"' + ' '.join(c for c in m.group(1).split() if c != 'fragment') + '\"', html); html = re.sub(r'\\sdata-fragment-index=\"[^\"]*\"', '', html); html = re.sub(r\"\\sdata-fragment-index='[^']*'\", '', html); p.write_text(html)" "$tmp_dir/$html_name"
 
-            html_url="http://127.0.0.1:8000/$html_name?print-pdf"
+            html_url="http://127.0.0.1:8000/$html_name"
             decktape reveal \
               --load-pause 1000 \
               --pause 250 \
