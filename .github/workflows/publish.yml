@@ -59,7 +59,11 @@ jobs:
             quarto render "$source" --output-dir slides/docs
             html_path="slides/docs/$(basename "${source%.qmd}").html"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
-            decktape reveal "$html_path" "$pdf_path"
+            decktape reveal \
+              --chrome-arg=--no-sandbox \
+              --chrome-arg=--disable-setuid-sandbox \
+              "$html_path" \
+              "$pdf_path"
           done
 
       - name: Deploy to gh-pages
