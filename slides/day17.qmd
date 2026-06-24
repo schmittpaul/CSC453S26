@@ -285,7 +285,7 @@ Comments? Thoughts?
   - Wear leveling: ensuring even distribution of writes across the flash memory
   - Garbage collection: reclaiming space from invalid pages
   - Bad block management: handling blocks that have worn out or are defective
-- The FTL is critical for the performance and longevity of an SSD, as it abstracts away the complexities of flash memory management from the host system 
+- The FTL is critical for the performance and longevity of an SSD, as it abstracts away the complexities of flash memory management from the host system
 
 ## {background-color="#6E404F"}
 ::: {.r-fit-text}
