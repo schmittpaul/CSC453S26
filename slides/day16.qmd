@@ -10,7 +10,7 @@ format:
 
 ## Admin
 :::{.nonincremental}
-- Lab due Thursday
+- Lab due Thursday 
 - Assignment 4 due Wednesday
 - Quiz due next Monday
 - Reminder the final is on Tuesday, June 9th at 13:10 in the lab room
