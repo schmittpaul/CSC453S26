@@ -1,217 +1,238 @@
 [
   {
-    "objectID": "day17.html#admin",
-    "href": "day17.html#admin",
+    "objectID": "day16.html#admin",
+    "href": "day16.html#admin",
     "title": "CSC 453",
     "section": "Admin",
-    "text": "Admin\n\nLab due Tonight\nQuiz due next Monday\nI will hold office hours on Monday from 12-3pm\nReminder the final is on Tuesday, June 9th at 13:10 in the lab room"
+    "text": "Admin\n\nLab due Thursday\nAssignment 4 due Wednesday\nQuiz due next Monday\nReminder the final is on Tuesday, June 9th at 13:10 in the lab room"
   },
   {
-    "objectID": "day17.html#questions-to-consider",
-    "href": "day17.html#questions-to-consider",
+    "objectID": "day16.html#questions-to-consider",
+    "href": "day16.html#questions-to-consider",
     "title": "CSC 453",
     "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhy does the OS (or disk controller) bother reordering I/O requests rather than just serving them in arrival order?\nWhat problem does SSTF solve compared to FCFS, and what new problem does it introduce?\nHow does SCAN (elevator) avoid the starvation problem of SSTF, and why is it unfair to requests that just arrived behind the head?\nWhat is the difference between SCAN and LOOK, and why is LOOK generally preferred?"
+    "text": "Questions to consider\n\nWhat can go wrong when a crash interrupts a multi-step file system operation like appending to a file?\nHow does fsck detect and repair file system inconsistencies, and what are its limitations?\nHow does journaling maintain consistency across crashes, and what ordering guarantees matter?\nWhat is the difference between ordered and journal modes?"
   },
   {
-    "objectID": "day17.html#disk-scheduling-1",
-    "href": "day17.html#disk-scheduling-1",
+    "objectID": "day16.html#consistency",
+    "href": "day16.html#consistency",
     "title": "CSC 453",
-    "section": "Disk scheduling",
-    "text": "Disk scheduling\n\nWe know that disk performance is punitive; seek dominates\nOSes typically have many processes issuing reads/writes; I/O is bursty — queues can grow large, then drain\nThis gives us an opportunity to reorder requests to reduce costly seeks\nNote: these algos used to run in the OS; drives have their own controllers now"
+    "section": "Consistency",
+    "text": "Consistency\n\nMachines can crash / reboot unexpectedly.\nExample: bitmap + inode + data block. Append operation results in three writes\n\nWhat outcomes are possible from a crash?"
   },
   {
-    "objectID": "day17.html#disk-scheduling-fcfs-and-sstf",
-    "href": "day17.html#disk-scheduling-fcfs-and-sstf",
+    "objectID": "day16.html#consistency-contd",
+    "href": "day16.html#consistency-contd",
     "title": "CSC 453",
-    "section": "Disk scheduling: FCFS and SSTF",
-    "text": "Disk scheduling: FCFS and SSTF\n\nFCFS: serve requests in arrival order\n\nFair, no starvation — but makes no attempt to minimize seek time\n\nSSTF: always service the request closest to the current head position\n\nTends to minimize average seek time\nCon: starvation — a request far from the head may never be serviced if closer requests keep arriving"
+    "section": "Consistency (cont’d)",
+    "text": "Consistency (cont’d)\n\nOne operation succeeds\n\nJust inode is updated\n\nPointing to garbage\nInconsistent with bitmap\n\nJust the bitmap is updated\n\nInconsistent with inode\nIf we do nothing, we have a space leak\n\nJust the data block is written (no inconsistency for FS, still bad)"
   },
   {
-    "objectID": "day17.html#disk-scheduling-scan-family",
-    "href": "day17.html#disk-scheduling-scan-family",
+    "objectID": "day16.html#consistency-contd-1",
+    "href": "day16.html#consistency-contd-1",
     "title": "CSC 453",
-    "section": "Disk scheduling: SCAN family",
-    "text": "Disk scheduling: SCAN family\n\nSCAN (elevator): sweep in one direction servicing requests, reverse at the end\n\nSolves starvation, but unfair — requests just behind the head wait a full sweep\n\nC-SCAN: like SCAN but jump back to the start instead of reversing; more uniform wait times\nLOOK / C-LOOK: like SCAN/C-SCAN but turn around at the last actual request, not the disk edge\n\nLess wasted movement; usually what people mean when they say “SCAN”"
+    "section": "Consistency (cont’d)",
+    "text": "Consistency (cont’d)\n\nTwo operations succeed\n\nInode and data, not bitmap\n\nInconsistent FS\n\nBitmap and data, not inode\n\nInconsistent and we have no idea who (inode) owns the data\n\nBitmap + inode done, not data\n\nBig problem. FS is consistent, but data is garbage"
   },
   {
-    "objectID": "day17.html#disk-scheduling-example",
-    "href": "day17.html#disk-scheduling-example",
+    "objectID": "day16.html#consistency-contd-2",
+    "href": "day16.html#consistency-contd-2",
     "title": "CSC 453",
-    "section": "Disk scheduling example",
-    "text": "Disk scheduling example\n\n\nDisk has 200 cylinders; head is at cylinder 50; pending requests:\n\n82, 170, 43, 140, 24, 16, 190\n\nWhat is the total head movement for FCFS, SSTF, and SCAN?\n\n\n\nFCFS (arrival order: 82→170→43→140→24→16→190): 32+88+127+97+116+8+174 = 642\nSSTF (always nearest: 50→43→24→16→82→140→170→190): 7+19+8+66+58+30+20 = 208\nSCAN (sweep up to 199, then back down to 16): (199-50) + (199-16) = 149 + 183 = 332"
+    "section": "Consistency (cont’d)",
+    "text": "Consistency (cont’d)\n\nWhat should we do?\nAtomicity across multiple disk writes isn’t guaranteed: a crash between writes leaves the FS in a partial state\nWe can allow things to fail, and try to recover from inconsistencies after the fact\nWe can use a journal"
   },
   {
-    "objectID": "day17.html#disk-scheduling-summary",
-    "href": "day17.html#disk-scheduling-summary",
+    "objectID": "day16.html#consistency-checking",
+    "href": "day16.html#consistency-checking",
     "title": "CSC 453",
-    "section": "Disk scheduling summary",
-    "text": "Disk scheduling summary\n\nWhich should we choose?\nGenerally speaking, SCAN family is used\n\nGood for heavy disk loads, avoid starvation\nWhat if you had a system where the average queue length was 1?\n\nLinux has a deadline scheduler\n\nSeparate read and write queues (prioritize reads as processes are more likely to block on read vs write)\nOrdered queues: so they end up being serviced in a SCAN-like order\nAlso FCFS queues for both for bookkeeping\n\nAfter a batch of actions, check to see if there are any in the FCFS queue that has aged beyond some threshold"
+    "section": "Consistency checking",
+    "text": "Consistency checking\n\nfsck: file system consistency check. Uses up to six passes:\n\nPass 1: scan superblock and all inodes\n\nfor each inode, ensure metadata makes sense (valid permissions, sensible/valid block numbers)\n\nPass 2 & 3: check directories\n\nDo . and .. create a cycle-less namespace?\nOrphaned directories are placed in lost+found\n\nPass 4: Check ref counts\nPass 5: check bitmaps\n\nDo the in-use bitmaps match the current inode, block state?\n\nPass 6: check sectors (optional)"
   },
   {
-    "objectID": "day17.html#section",
-    "href": "day17.html#section",
+    "objectID": "day16.html#consistency-checking-contd",
+    "href": "day16.html#consistency-checking-contd",
+    "title": "CSC 453",
+    "section": "Consistency checking (cont’d)",
+    "text": "Consistency checking (cont’d)\n\nfsck is a powerful tool, but\n\nIt requires the file system to be unmounted, which can lead to downtime\nThis is a massive operation, can take hours… Should we really take this extreme approach for a potentially small issue?\nIt doesn’t fix all problems (bitmap and inode are consistent but point to garbage)\nAllows things to break then tries to repair\n\nThere has to be a better way to maintain consistency in the first place, which leads us to journaling"
+  },
+  {
+    "objectID": "day16.html#journaling",
+    "href": "day16.html#journaling",
+    "title": "CSC 453",
+    "section": "Journaling",
+    "text": "Journaling\n\nLike any hard systems problem, we’ll steal ideas from others (in this case databases)\nThe idea is to write an operation’s intent to a journal before performing the actual operation\nIf the system crashes, we can replay the journal to complete any operations that were in-flight\nJournaling can be implemented in different ways:\n\nOrdered mode: only journal metadata changes (e.g., inode updates, bitmap changes)\nJournal mode: both metadata and data are written to the journal"
+  },
+  {
+    "objectID": "day16.html#example-ext3",
+    "href": "day16.html#example-ext3",
+    "title": "CSC 453",
+    "section": "Example: ext3",
+    "text": "Example: ext3\n\nExt2 + journaling\n\nOrganized into block groups\nGroups sized equal to one or more disk tracks\nEach group contains\n\na copy of the superblock (although not all are current)\na group description (block group metadata)\n\nblock number of blocks; allocation bitmap\nblock number of inodes; allocation bitmap\nnumber of free blocks; inodes and directories in group\n\nInodes\nData blocks"
+  },
+  {
+    "objectID": "day16.html#example-ext3-contd",
+    "href": "day16.html#example-ext3-contd",
+    "title": "CSC 453",
+    "section": "Example: ext3 (cont’d)",
+    "text": "Example: ext3 (cont’d)\n\next3 inodes use a multi-level index\n\n12 direct, 1 single indirect, 1 double indirect and 1 triple indirect\n\n4KB blocks? 48K, 4MB, 4GB, 4TB\n\n\nAttempts to allocate related blocks near each other, near their inodes (within a group): within a cylinder group or in nearby cylinder groups\n\nAll blocks of a file accessed in one track access (ideally)\n\nFixed number of inodes per group"
+  },
+  {
+    "objectID": "day16.html#ext3-journaling",
+    "href": "day16.html#ext3-journaling",
+    "title": "CSC 453",
+    "section": "Ext3 journaling",
+    "text": "Ext3 journaling\n\nTransaction begin and end markers in the journal, plus actual data to be written\nNaive order of operations:\n\nWrite journal entry\nWrite to disk\n\nWhat happens if the system crashes in the middle of the journal write (say, Db is not written)?\n\nCould write garbage when replaying the transaction upon boot\nNow what?"
+  },
+  {
+    "objectID": "day16.html#ext3-journaling-contd",
+    "href": "day16.html#ext3-journaling-contd",
+    "title": "CSC 453",
+    "section": "Ext3 journaling (cont’d)",
+    "text": "Ext3 journaling (cont’d)\n\nExt3 uses ordered mode journaling, which means that only metadata changes are journaled, and data blocks are written directly to their final location on disk\n\nWe have to be careful about the order of operations to maintain consistency\n\nWe need to break the transaction into multiple steps, and write them in a specific order to ensure consistency\n\nWrite data blocks to their final disk location (never to the journal)\nWrite metadata blocks to the journal\nWrite transaction end marker to journal (MUST be last, known as a transaction commit)\nWrite (checkpoint) metadata blocks to their final disk location\n\nThe key invariant: data is on disk before the journal commit that makes the new metadata visible"
+  },
+  {
+    "objectID": "day16.html#section",
+    "href": "day16.html#section",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
-    "objectID": "day17.html#questions-to-consider-1",
-    "href": "day17.html#questions-to-consider-1",
+    "objectID": "day16.html#questions-to-consider-1",
+    "href": "day16.html#questions-to-consider-1",
     "title": "CSC 453",
     "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhy is a single disk insufficient for many modern applications, and what two software/hardware abstractions help organize multiple disks?\nWhat is a RAID stripe, and how does stripe size affect throughput and internal fragmentation?\nHow does RAID 0 differ from RAID 1 in terms of performance and redundancy?\nHow does XOR parity allow RAID 4/5 to reconstruct data after a single disk failure?\nWhat is the “small write problem” in RAID 5, and why does it occur?"
+    "text": "Questions to consider\n\nWhat are the three components of HDD access time, and which dominates?\nHow does RPM affect average rotational latency?"
   },
   {
-    "objectID": "day17.html#storage-organization-1",
-    "href": "day17.html#storage-organization-1",
+    "objectID": "day16.html#hdds",
+    "href": "day16.html#hdds",
     "title": "CSC 453",
-    "section": "Storage organization",
-    "text": "Storage organization\n\nSingle disks neither have the capacity, responsiveness, throughput or reliability to be supportive of many applications we desire\n\nHigh-bandwidth applications: multi-media, scientific computing\nHigh-capacity: “big data” applications\nHigh-availability: any online service\n\nWe’re limited by physics to increase capacity: bit-densities are approaching theoretical limits\nForm factor and energy limit the physical size"
+    "section": "HDDs",
+    "text": "HDDs\n\n\n\nYes, they’re still important / around\nFar more cost effective than SSDs\nSector: (512 bytes) smallest amount of IO you can do to an HDD\nTracks: 256KB-1MB in size"
   },
   {
-    "objectID": "day17.html#storage-organization-contd",
-    "href": "day17.html#storage-organization-contd",
+    "objectID": "day16.html#hdds-contd",
+    "href": "day16.html#hdds-contd",
     "title": "CSC 453",
-    "section": "Storage organization (cont’d)",
-    "text": "Storage organization (cont’d)\n\nWhat should we do?\n\nAdd more disks\n\nQ: How do we organize multiple drives into a single logical unit of storage?\n\nLVM\nRAID"
+    "section": "HDDs (cont’d)",
+    "text": "HDDs (cont’d)\n\n\n\nActual drives have many platters, are double-sided\nMillions of tracks\nPerformance factors?\n\nSeek (moving the arm to position the head over the correct sector)\nRotation (RPMs)\nTransfer (time to read/write from the head)\n\nWhich do you think is most burdensome / costly?"
   },
   {
-    "objectID": "day17.html#lvm",
-    "href": "day17.html#lvm",
+    "objectID": "day16.html#seek-time",
+    "href": "day16.html#seek-time",
     "title": "CSC 453",
-    "section": "LVM",
-    "text": "LVM\n\n\n\nLogical Volume Manager: a way of organizing/abstracting multiple block devices into a single logical unit of storage\nA software translation layer\nCan provide additional features, like: encryption, snapshots, redundancy, hot-swapping, resizing"
+    "section": "Seek time",
+    "text": "Seek time\n\nSeek: accelerate, coast, settle"
   },
   {
-    "objectID": "day17.html#raid",
-    "href": "day17.html#raid",
+    "objectID": "day16.html#rotation-time",
+    "href": "day16.html#rotation-time",
     "title": "CSC 453",
-    "section": "RAID",
-    "text": "RAID\n\nRedundant Array of Independent Disks: another type of volume manager\nOften a physical organization of disks, and a hardware controller, providing a single logical view of all disks\n\n(Although software controllers exist)\n\nCan provide: high throughput, parallel I/O, reliability and transparent management"
+    "section": "Rotation time",
+    "text": "Rotation time\n\na function of RPM; average rot. lat. ½ revolution\n\ne.g. 7200RPM = 8.33ms per rotation\n\navg = 4.16ms\n\n\nCommon HDD speeds:\n\n5400 (yikes, good for cold storage)\n7200 (decent middle ground)\n10K, 15K (good for a lot of random accesses); use case?\n\nDBs"
   },
   {
-    "objectID": "day17.html#raid-contd",
-    "href": "day17.html#raid-contd",
+    "objectID": "day16.html#transfer-time",
+    "href": "day16.html#transfer-time",
     "title": "CSC 453",
-    "section": "RAID (cont’d)",
-    "text": "RAID (cont’d)\n\nConsider Mean-time-to-failure (MTTF)\n\ne.g., 750,000 hours for a single disk\nA data center has 1,000,000 disks\n1 disk failure every .75 hours (45 minutes)\n\nRAID gives us a way to tolerate and recover from these failures gracefully"
+    "section": "Transfer time",
+    "text": "Transfer time\n\nsimple case (all data in one track):\n\nsectors desired * time for revolution / sectors per track\n\ncomplex case (mult. tracks): above + ? (seeks, track & cyl. switches)"
   },
   {
-    "objectID": "day17.html#raid-terminology",
-    "href": "day17.html#raid-terminology",
+    "objectID": "day16.html#where-does-the-time-go",
+    "href": "day16.html#where-does-the-time-go",
     "title": "CSC 453",
-    "section": "RAID terminology",
-    "text": "RAID terminology\n\nStripe: a set of blocks across multiple disks that are accessed together\n\nHow does stripe size impact system characteristics?\n\nSmaller means more flexibility in size of data stored (reduced internal fragmentation); decreased maximum throughput\nLarger means high throughput; higher internal fragmentation\n\n\nMirroring: storing identical data on multiple disks for redundancy\n\nReads are faster (can read from either disk), writes are slower (need to write to both disks)\nRecovering from a failure is effectively instant: just read from the surviving disk\n\nParity: storing information that can be used to reconstruct data in case of a disk failure"
+    "section": "Where does the time go?",
+    "text": "Where does the time go?"
   },
   {
-    "objectID": "day17.html#raid-levels---raid-0",
-    "href": "day17.html#raid-levels---raid-0",
+    "objectID": "day16.html#where-does-the-time-go-it-depends.",
+    "href": "day16.html#where-does-the-time-go-it-depends.",
     "title": "CSC 453",
-    "section": "RAID levels - RAID 0",
-    "text": "RAID levels - RAID 0\n\nRAID 0: striping without redundancy\nlogically, it just looks like one large disk\n\ne.g., Two 1TB drives becomes one 2TB drive\n\nPros?\n\nHigh Performance: Data is split across multiple disks, allowing for faster read and write speeds.\nFull Capacity Utilization: All disk space is used for storage, with no redundancy overhead.\n\nCons?\n\nNo Redundancy: If one disk fails, all data is lost."
+    "section": "Where does the time go? It depends.",
+    "text": "Where does the time go? It depends."
   },
   {
-    "objectID": "day17.html#raid-levels---raid-1",
-    "href": "day17.html#raid-levels---raid-1",
-    "title": "CSC 453",
-    "section": "RAID levels - RAID 1",
-    "text": "RAID levels - RAID 1\n\nRAID 1: mirroring\nTwo identical RAID sets (mirror copy of each disk)\nIndividual drives within a RAID set can fail, so long as their logical counterpart survives\nReads can be serviced by either set (e.g. whichever responds first)\nPros?\n\nHigh Redundancy: Data is mirrored across two disks, providing a complete backup.\nImproved Read Performance: Read operations can be faster as data can be read from either disk.\n\nCons?\n\nStorage Efficiency: Only half of the total disk space is usable, as the other half is used for mirroring."
-  },
-  {
-    "objectID": "day17.html#raid-levels---raid-2-4",
-    "href": "day17.html#raid-levels---raid-2-4",
-    "title": "CSC 453",
-    "section": "RAID levels - RAID 2-4",
-    "text": "RAID levels - RAID 2-4\n\nDesignate a disk as a parity disk; parity being encoded data for redundancy\n\nRAID 2: bit-level striping with dedicated Hamming code parity\nRAID 3: byte-level striping with dedicated parity disk\nRAID 4: block-level striping with dedicated parity disk\n\nMany different encoding schemes; here’s a simple one:\n\nA ⊕ B ⊕ C = P\nA dies; P ⊕ B ⊕ C = A\nAll have a write bottleneck: only as fast as the parity drive"
-  },
-  {
-    "objectID": "day17.html#raid-4",
-    "href": "day17.html#raid-4",
-    "title": "CSC 453",
-    "section": "RAID 4",
-    "text": "RAID 4\n\nPros?\n\nGood Read Performance: Similar to RAID 0, data is striped across disks, improving read speeds.\nParity for Redundancy: A dedicated parity disk provides data protection in case of a single disk failure. But the overhead of parity is only 1 disk, so more efficient than RAID 1\n\nCons?\n\nWrite Bottleneck: The dedicated parity disk can become a bottleneck during write operations.\nReduced Fault Tolerance: If the parity disk fails, the array loses all redundancy — any subsequent disk failure will cause data loss."
-  },
-  {
-    "objectID": "day17.html#raid-levels---raid-5",
-    "href": "day17.html#raid-levels---raid-5",
-    "title": "CSC 453",
-    "section": "RAID levels - RAID 5",
-    "text": "RAID levels - RAID 5\n\nRAID 5: block-level striping with distributed parity\nLike RAID 4, but with parity distributed among all disks\nonly supports a single drive failure, but …\n… All drives perform in reads and writes\nBest small read, large read, large write performance\n\nTERRIBLE small write performance\nSmall write problem: small-writes incur a lot of I/O; e.g., a small update to a large stripe\nEntire stripe read in, modified, new parity computed, written back out"
-  },
-  {
-    "objectID": "day17.html#raid-5",
-    "href": "day17.html#raid-5",
-    "title": "CSC 453",
-    "section": "RAID 5",
-    "text": "RAID 5\n\nPros?\n\nBalanced Performance: Offers good read and write performance with data and parity distributed across all disks.\n\nThough this depends on the workload: small writes are very bad, large writes are good\n\nEfficient Storage: Only one disk’s worth of space is used for parity, providing better storage efficiency than RAID 1.\n\nCons?\n\nRebuild Time: Rebuilding the array after a disk failure can be time-consuming and impacts performance.\nWrite Penalty: Write operations (small writes are the worst) are slower due to the need to update parity information."
-  },
-  {
-    "objectID": "day17.html#additional-raid-levels",
-    "href": "day17.html#additional-raid-levels",
-    "title": "CSC 453",
-    "section": "Additional RAID levels",
-    "text": "Additional RAID levels\n\nRAID 6: block-level striping with double distributed parity (can tolerate two disk failures)\nRAID 10: a combination of RAID 1 and RAID 0 (striping + mirroring)\nMany other levels and variations exist, each with different trade-offs in terms of performance, redundancy, and storage efficiency\n\nLevels have become marketing tools, higher levels are typically some combination (often nested) of those we’ve talked about\n\ne.g., RAID 50 (striping across multiple RAID 5 sets), RAID 60 (striping across multiple RAID 6 sets), etc.\n\n\nHot-spares: a drive in a RAID group that is blank and inactive. Can be used to immediately rebuild a RAID should a single drive fail without waiting for humans"
-  },
-  {
-    "objectID": "day17.html#choosing-a-raid-level",
-    "href": "day17.html#choosing-a-raid-level",
-    "title": "CSC 453",
-    "section": "Choosing a RAID level",
-    "text": "Choosing a RAID level\n\nDepends on your needs and constraints:\n\nPerformance requirements (read vs write, small vs large)\nRedundancy needs (tolerance for disk failures)\nStorage efficiency (how much usable space do you need?)\nBudget (cost of additional disks for redundancy)\n\nFor example:\n\nRAID 0 for high performance with no redundancy (e.g., gaming)\nRAID 1 for critical data that requires high redundancy (e.g., financial records)\nRAID 5 for a balance of performance and redundancy (e.g., general-purpose servers where a long rebuild time is acceptable)\nRAID 6 for environments where data integrity is paramount and multiple disk failures are a concern (e.g., archival storage)"
-  },
-  {
-    "objectID": "day17.html#section-1",
-    "href": "day17.html#section-1",
+    "objectID": "day16.html#section-1",
+    "href": "day16.html#section-1",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
-    "objectID": "day17.html#questions-to-consider-2",
-    "href": "day17.html#questions-to-consider-2",
+    "objectID": "day16.html#questions-to-consider-2",
+    "href": "day16.html#questions-to-consider-2",
     "title": "CSC 453",
     "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the three levels of NAND flash organization, and what is the smallest unit of read/write vs. erase?\nWhy can’t an SSD overwrite a page in place, and what sequence of operations is required to update data?\nWhat is write amplification, and why does it occur in NAND flash?\nWhat is wear leveling, and why is it necessary for SSD longevity?\nWhat does the Flash Translation Layer (FTL) do, and why does the OS need it?"
+    "text": "Questions to consider\n\nWhat is track skew, and why does it improve sequential read performance across cylinders?\nWhy do outer tracks hold more data than inner tracks on a constant-RPM drive, and how does zoning address this?\nWhen a sector goes bad, what are the two ways a drive can handle it, and what is the trade-off?"
   },
   {
-    "objectID": "day17.html#ssds-nand-flash-basics",
-    "href": "day17.html#ssds-nand-flash-basics",
+    "objectID": "day16.html#simple-organization-contd",
+    "href": "day16.html#simple-organization-contd",
     "title": "CSC 453",
-    "section": "SSDs: NAND Flash Basics",
-    "text": "SSDs: NAND Flash Basics\n\n\n\nSSDs use NAND flash memory, which is organized into planes, blocks, and pages\n\nPlane: a collection of blocks that can be accessed in parallel\nBlock: a collection of pages (e.g., 128-256 pages per block)\nPage: the smallest unit of read/write (e.g., 4KB-16KB)"
+    "section": "Simple organization (cont’d)",
+    "text": "Simple organization (cont’d)\n\n\n\nWhat’s presented by the disk drive: a linear array of sectors\n\nThis is a logical abstraction\n\nDrive must map logical blocks to physical blocks"
   },
   {
-    "objectID": "day17.html#nand-rules",
-    "href": "day17.html#nand-rules",
+    "objectID": "day16.html#complication-skew",
+    "href": "day16.html#complication-skew",
     "title": "CSC 453",
-    "section": "NAND rules",
-    "text": "NAND rules\n\nCells store 1–4 bits (SLC→QLC); more bits per cell = cheaper, slower, fewer write cycles\nAlways read an entire page (e.g., 4KB-16KB)\nAlways write an entire page (to change a single byte, you must write the whole page)\n\nFast(er): 100s of microseconds\n\nPages cannot be overwritten in place — page can only be written once after an erase\n\nAn update requires: read page into memory → modify → write to a new location → mark old page invalid\n\nErase is done at the block level (e.g., 128–256 pages); all pages erased together, every bit reset to 1\n\nAll data must be copied out safely before erase\nSlow: few milliseconds"
+    "section": "Complication: skew",
+    "text": "Complication: skew\n\n\n\nSequential reads / write are ideal\nUnfortunately, seeks exist, and sector sequences can cross cylinders / tracks\nE.g., if you are reading sectors 9-12 on the disk you need to seek to a new cylinder\n\nWhat downside does this present?\n\nBy the time you seek, sector 12 has already spun past the head, you need to wait for it to rotate back around"
   },
   {
-    "objectID": "day17.html#ssds-performance-characteristics",
-    "href": "day17.html#ssds-performance-characteristics",
+    "objectID": "day16.html#complication-skew-contd",
+    "href": "day16.html#complication-skew-contd",
     "title": "CSC 453",
-    "section": "SSDs: Performance characteristics",
-    "text": "SSDs: Performance characteristics"
+    "section": "Complication: skew (cont’d)",
+    "text": "Complication: skew (cont’d)\n\n\n\nWhat should we do?\nReorganize where sectors are located on the physical device\n\nRequires tuning based on the specific device characteristics, in this example it’s 2 blocks off (to go from sector 23 to sector 24)"
   },
   {
-    "objectID": "day17.html#ssd-challenges",
-    "href": "day17.html#ssd-challenges",
+    "objectID": "day16.html#complication-zones",
+    "href": "day16.html#complication-zones",
     "title": "CSC 453",
-    "section": "SSD challenges",
-    "text": "SSD challenges\n\nFlash memory is written in pages, erased in blocks\n\nWrite amplification: due to the need to erase blocks before writing, the actual amount of data written to the flash can be much larger than the amount of data intended to be written by the host\n\ne.g., a single byte update can trigger a read-modify-write cycle for an entire block\n\nGarbage collection: the process of reclaiming space from invalid pages, which can impact performance if not managed properly\n\nFlash memory wears out after a certain number of program/erase cycles, leading to potential data loss and reduced lifespan\n\nWear leveling: to prevent premature failure of flash cells, data must be distributed evenly across the flash memory"
+    "section": "Complication: zones",
+    "text": "Complication: zones\n\nLinear velocity vs. angular velocity\nWe talk about drives in terms of constant RPM: what is the consequence of this for tracks?\n\nOuter tracks have more space to put data"
   },
   {
-    "objectID": "day17.html#ssds-flash-translation-layer-ftl",
-    "href": "day17.html#ssds-flash-translation-layer-ftl",
+    "objectID": "day16.html#complication-zones-contd",
+    "href": "day16.html#complication-zones-contd",
     "title": "CSC 453",
-    "section": "SSDs: Flash Translation Layer (FTL)",
-    "text": "SSDs: Flash Translation Layer (FTL)\n\nThe OS cannot deal with all of this complexity. The FTL is a layer of software/firmware that manages everything related to flash memory, presenting a simple block device interface to the OS\nResponsibilities of the FTL:\n\nAddress mapping: translating LBAs to PBAs\nWear leveling: ensuring even distribution of writes across the flash memory\nGarbage collection: reclaiming space from invalid pages\nBad block management: handling blocks that have worn out or are defective\n\nThe FTL is critical for the performance and longevity of an SSD, as it abstracts away the complexities of flash memory management from the host system"
+    "section": "Complication: zones (cont’d)",
+    "text": "Complication: zones (cont’d)\n\n\n\nWhat should we do?\nWe could slow the rotation on outer tracks\n\nSome older systems did this\n\nOption 2: (common)\n\nPlace more sectors per zone on outer tracks\nComplicates logic"
   },
   {
-    "objectID": "day17.html#section-2",
-    "href": "day17.html#section-2",
+    "objectID": "day16.html#complication-defects",
+    "href": "day16.html#complication-defects",
+    "title": "CSC 453",
+    "section": "Complication: defects",
+    "text": "Complication: defects\n\nOver time, portions of media become unusable (e.g. fail to hold charge, exhibit many errors);\nHow should we handle a defect?\n\nWe keep additional physical space for “spares” (both tracks and sectors)"
+  },
+  {
+    "objectID": "day16.html#complication-defects-contd",
+    "href": "day16.html#complication-defects-contd",
+    "title": "CSC 453",
+    "section": "Complication: defects (cont’d)",
+    "text": "Complication: defects (cont’d)\n\n\n\nHow should we handle a defect?\nRemapping: move the sector to a location in the reserved spare pool\nOngoing process, taken care of by drive firmware\nDo you see any downsides?\n\nSequential access is now broken"
+  },
+  {
+    "objectID": "day16.html#complication-defects-contd-1",
+    "href": "day16.html#complication-defects-contd-1",
+    "title": "CSC 453",
+    "section": "Complication: defects (cont’d)",
+    "text": "Complication: defects (cont’d)\n\n\n\nWhat else could we do?\n\nMove everything to maintain sequential sectors (known as slipping)\n\nThis really only works on a fresh drive formatting: hard to do live\n\nOther approaches?\n\nError Correcting Codes (ECC)\n\nIf you’re curious most HDDs use Reed-Solomon"
+  },
+  {
+    "objectID": "day16.html#hdd-organization-summary",
+    "href": "day16.html#hdd-organization-summary",
+    "title": "CSC 453",
+    "section": "HDD organization summary",
+    "text": "HDD organization summary\n\nLuckily, the OS no longer needs to care about most of these details: taken care of by firmware on the drive itself\nWe’ll return to some gory details about disks in a bit (RAID), but first, disk scheduling"
+  },
+  {
+    "objectID": "day16.html#section-2",
+    "href": "day16.html#section-2",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
