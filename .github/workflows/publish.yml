@@ -57,13 +57,14 @@ jobs:
 
           for source in "${slide_sources[@]}"; do
             quarto render "$source" --output-dir slides/docs
-            html_path="slides/docs/$(basename "${source%.qmd}").html"
+            html_path="$(realpath "slides/docs/$(basename "${source%.qmd}").html")"
+            html_url="file://$html_path"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
             decktape reveal \
               --chrome-arg=--allow-file-access-from-files \
               --chrome-arg=--no-sandbox \
               --chrome-arg=--disable-setuid-sandbox \
-              "$html_path" \
+              "$html_url" \
               "$pdf_path"
           done
 
