@@ -363,4 +363,44 @@ $selection-bg: #26351c !default;
 }
 .reveal .columns6040 div.column:not(:first-child) {
   width: 40%;
-}      
+}
+
+// Print/PDF fallback:
+// Reveal's normal print path keeps each slide inside a fixed-height canvas.
+// That can clip long slides or content that was revealed by fragments.
+// In print mode, let slides flow naturally so the browser can paginate them.
+html.reveal-print {
+  .reveal {
+    overflow: visible !important;
+  }
+
+  .reveal .slides {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .reveal .slides .pdf-page {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .reveal .slides section {
+    position: relative !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .reveal .slides section .fragment {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .reveal .r-fit-text {
+    white-space: normal !important;
+  }
+}
