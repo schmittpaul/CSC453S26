@@ -7,7 +7,6 @@ on:
       - "slides/_extensions/**"
       - "slides/images/**"
       - "slides/static/**"
-      - "scripts/export_rendered_slide_pdf.sh"
 
 name: Quarto Publish
 
@@ -60,7 +59,7 @@ jobs:
             quarto render "$source" --output-dir slides/docs
             html_path="slides/docs/$(basename "${source%.qmd}").html"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
-            ./scripts/export_rendered_slide_pdf.sh "$html_path" "$pdf_path"
+            decktape reveal "$html_path" "$pdf_path"
           done
 
       - name: Deploy to gh-pages
