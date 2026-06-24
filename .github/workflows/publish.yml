@@ -55,17 +55,53 @@ jobs:
             exit 0
           fi
 
-          python3 -m http.server 8000 --bind 127.0.0.1 --directory slides >/tmp/csc453-slides-http.log 2>&1 &
+          tmp_dir="$(mktemp -d)"
+          server_pid=""
+          cleanup() {
+            if [[ -n "$server_pid" ]]; then
+              kill "$server_pid" >/dev/null 2>&1 || true
+            fi
+            rm -rf "$tmp_dir"
+          }
+          trap cleanup EXIT
+
+          python3 -m http.server 8000 --bind 127.0.0.1 --directory "$tmp_dir" >/tmp/csc453-slides-http.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" >/dev/null 2>&1 || true' EXIT
 
           sleep 2
 
           for source in "${slide_sources[@]}"; do
             quarto render "$source" --output-dir slides/docs
-            html_url="http://127.0.0.1:8000/docs/$(basename "${source%.qmd}").html"
+            html_name="$(basename "${source%.qmd}").html"
+            html_path="slides/docs/$html_name"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
+
+            cp "$html_path" "$tmp_dir/$html_name"
+            python3 - "$tmp_dir/$html_name" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+html = path.read_text()
+
+def strip_fragment_class(match: re.Match) -> str:
+    classes = [c for c in match.group(1).split() if c != "fragment"]
+    if classes:
+        return 'class="' + " ".join(classes) + '"'
+    return ""
+
+html = re.sub(r'class="([^"]*)"', strip_fragment_class, html)
+html = re.sub(r"\sdata-fragment-index=\"[^\"]*\"", "", html)
+html = re.sub(r"\sdata-fragment-index='[^']*'", "", html)
+
+path.write_text(html)
+PY
+
+            html_url="http://127.0.0.1:8000/$html_name?print-pdf"
             decktape reveal \
+              --load-pause 1000 \
+              --pause 250 \
               --chrome-arg=--no-sandbox \
               --chrome-arg=--disable-setuid-sandbox \
               "$html_url" \
