@@ -55,9 +55,16 @@ jobs:
             exit 0
           fi
 
+          python3 -m http.server 8000 --directory slides/docs >/tmp/csc453-slides-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" >/dev/null 2>&1 || true' EXIT
+
+          sleep 2
+
           for source in "${slide_sources[@]}"; do
             quarto render "$source" --output-dir slides/docs
-            html_path="slides/docs/$(basename "${source%.qmd}").html"
+            html_name="$(basename "${source%.qmd}").html"
+            html_path="http://127.0.0.1:8000/$html_name"
             pdf_path="slides/docs/$(basename "${source%.qmd}").pdf"
             decktape reveal \
               --chrome-arg=--no-sandbox \
